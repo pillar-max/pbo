@@ -1,0 +1,2762 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Расписание ПБО</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F4F7;
+  --card:#ffffff;
+  --card2:#F8FAFC;
+  --border:#E3E8EF;
+  --border2:#C8D0DB;
+  --text:#0D1117;
+  --text2:#374151;
+  --muted:#6B7280;
+  --muted2:#9CA3AF;
+  --dep-bg:#EFF8FF;--dep-border:#93C5FD;--dep-text:#1D4ED8;
+  --mgr-bg:#F0FDF4;--mgr-border:#86EFAC;--mgr-text:#15803D;
+  --dir-bg:#FFFBEB;--dir-border:#FCD34D;--dir-text:#B45309;
+  --hr-bg:#FAF5FF;--hr-border:#C4B5FD;--hr-text:#6D28D9;
+  --accent:#16A34A;
+  --accent-h:#15803D;
+  --accent-soft:#DCFCE7;
+  --danger:#DC2626;
+  --warning:#D97706;
+  --hdr:#0F172A;
+  --radius:14px;
+  --radius-sm:9px;
+  --radius-lg:18px;
+  --shadow-xs:0 1px 2px rgba(0,0,0,.04);
+  --shadow-sm:0 1px 4px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:0 12px 24px rgba(0,0,0,.08),0 4px 8px rgba(0,0,0,.04);
+  --shadow-xl:0 24px 48px rgba(0,0,0,.1),0 8px 16px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.app{max-width:1280px;margin:0 auto;padding:28px 24px 100px}
+
+/* ── Header ── */
+.hdr{
+  background:linear-gradient(135deg,#0F172A 0%,#1E3A5F 60%,#0F2D1F 100%);
+  color:#fff;border-radius:var(--radius-lg);padding:24px 32px;margin-bottom:22px;
+  display:flex;align-items:center;gap:18px;
+  box-shadow:0 8px 32px rgba(15,23,42,.3);
+  position:relative;overflow:hidden;
+}
+.hdr::before{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(22,163,74,.18) 0%,transparent 65%);
+  border-radius:50%;pointer-events:none;
+}
+.hdr::after{
+  content:'';position:absolute;bottom:-60px;left:200px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(96,165,250,.1) 0%,transparent 65%);
+  border-radius:50%;pointer-events:none;
+}
+.hdr-icon{
+  width:50px;height:50px;border-radius:14px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-size:24px;backdrop-filter:blur(8px);position:relative;z-index:1;
+}
+.hdr-text{position:relative;z-index:1}
+.hdr h1{font-size:20px;font-weight:700;letter-spacing:-.4px;line-height:1.2}
+.hdr p{font-size:12px;color:rgba(255,255,255,.5);margin-top:3px;font-weight:400}
+
+/* ── Tabs ── */
+.tabs{
+  display:flex;gap:3px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:5px;margin-bottom:22px;flex-wrap:wrap;
+  box-shadow:var(--shadow-sm);
+}
+.tab{
+  flex:1;min-width:90px;padding:9px 12px;text-align:center;
+  font-size:12px;font-weight:500;border-radius:var(--radius-sm);
+  cursor:pointer;color:var(--muted);border:none;background:transparent;
+  transition:all .18s;white-space:nowrap;letter-spacing:-.1px;
+}
+.tab.active{background:var(--hdr);color:#fff;box-shadow:var(--shadow-sm);font-weight:600}
+.tab:hover:not(.active){background:var(--bg);color:var(--text2)}
+
+/* ── Panels & Cards ── */
+.panel{display:none}.panel.active{display:block}
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px 26px;margin-bottom:18px;
+  box-shadow:var(--shadow-sm);
+}
+.card-title{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--muted2);margin-bottom:16px;
+  display:flex;align-items:center;gap:7px;
+}
+.card-title::before{
+  content:'';width:3px;height:14px;
+  background:linear-gradient(to bottom,var(--accent),rgba(22,163,74,.3));
+  border-radius:2px;display:block;flex-shrink:0;
+}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.field label{font-size:11px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px;letter-spacing:.02em;text-transform:uppercase}
+input,select{
+  width:100%;padding:9px 13px;font-size:13px;font-family:inherit;
+  border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  background:#fff;color:var(--text);transition:all .18s;
+  box-shadow:var(--shadow-xs);
+}
+input:hover,select:hover{border-color:var(--border2)}
+input:focus,select:focus{
+  outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(22,163,74,.1);
+}
+input[type=number]{-moz-appearance:textfield}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:6px;padding:10px 18px;font-size:13px;font-weight:600;
+  font-family:inherit;border:none;border-radius:var(--radius-sm);
+  cursor:pointer;transition:all .2s;letter-spacing:-.1px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent-h) 100%);
+  color:#fff;width:100%;padding:13px;font-size:14px;
+  box-shadow:0 2px 8px rgba(22,163,74,.25);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(22,163,74,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{
+  background:var(--card);color:var(--text2);
+  border:1.5px solid var(--border);padding:8px 14px;font-size:12px;
+  box-shadow:var(--shadow-xs);
+}
+.btn-secondary:hover{background:var(--bg);border-color:var(--border2)}
+
+/* ── Separator ── */
+.sep{
+  font-size:10px;font-weight:700;color:var(--muted2);
+  text-transform:uppercase;letter-spacing:.1em;
+  padding:10px 0 6px;border-bottom:1.5px solid var(--border);
+  margin-bottom:10px;
+}
+
+/* ── Alerts ── */
+.alert{padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;margin-top:12px;display:none;font-weight:500}
+.alert.show{display:flex;align-items:center;gap:8px}
+.alert-ok{background:var(--accent-soft);color:#14532D;border:1px solid #86EFAC}
+.alert-err{background:#FFF1F2;color:#9F1239;border:1px solid #FECDD3}
+
+/* ── Employee rows ── */
+.emp-row{
+  border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;
+  overflow:hidden;transition:box-shadow .15s;background:var(--card);
+}
+.emp-row:hover{box-shadow:var(--shadow-md)}
+.emp-row.dep{background:var(--dep-bg);border-color:var(--dep-border)}
+.emp-row.mgr{background:var(--mgr-bg);border-color:var(--mgr-border)}
+.emp-row.dir{background:var(--dir-bg);border-color:var(--dir-border)}
+.emp-row.hr {background:var(--hr-bg); border-color:var(--hr-border)}
+.emp-main{
+  display:grid;grid-template-columns:1.8fr 1.2fr 1fr auto;
+  gap:10px;align-items:center;padding:12px 16px;
+}
+.emp-detail{display:none;padding:14px 16px;border-top:1.5px solid var(--border);background:rgba(255,255,255,.7);backdrop-filter:blur(4px)}
+.emp-detail.open{display:block}
+.c-grid{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:6px}
+.c-item{
+  font-size:12px;display:flex;align-items:center;gap:7px;
+  cursor:pointer;padding:5px 10px;border-radius:7px;
+  background:rgba(255,255,255,.8);border:1px solid var(--border);
+  transition:all .12s;white-space:nowrap;
+}
+.c-item:hover{border-color:var(--border2);box-shadow:var(--shadow-xs)}
+.c-item input[type=checkbox]{width:14px;height:14px;cursor:pointer;flex-shrink:0;accent-color:var(--accent)}
+.wish-inp{width:44px;text-align:center;padding:4px 3px;font-size:12px}
+
+/* ── Badges ── */
+.badge{
+  display:inline-block;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:20px;margin-top:3px;letter-spacing:.02em;
+}
+.badge-dep{background:var(--dep-bg);color:var(--dep-text);border:1px solid var(--dep-border)}
+.badge-mgr{background:var(--mgr-bg);color:var(--mgr-text);border:1px solid var(--mgr-border)}
+.badge-dir{background:var(--dir-bg);color:var(--dir-text);border:1px solid var(--dir-border)}
+.badge-hr {background:var(--hr-bg); color:var(--hr-text); border:1px solid var(--hr-border)}
+.toggle-c{
+  padding:6px 12px;font-size:11px;font-weight:600;
+  border:1.5px solid var(--border);border-radius:7px;
+  background:rgba(255,255,255,.8);cursor:pointer;white-space:nowrap;
+  color:var(--muted);transition:all .12s;
+}
+.toggle-c:hover{border-color:var(--border2);color:var(--text2);background:#fff}
+.dept-badge{
+  display:inline-block;font-size:10px;font-weight:600;
+  padding:1px 7px;border-radius:20px;
+  background:#EFF8FF;color:#1D4ED8;border:1px solid #93C5FD;margin-left:5px;
+}
+
+/* ── Schedule table ── */
+.sched-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
+.sched-t{border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap;width:100%}
+.sched-t th,.sched-t td{
+  border-bottom:1px solid var(--border);border-right:1px solid var(--border);
+  padding:5px 4px;text-align:center;
+}
+.sched-t th:last-child,.sched-t td:last-child{border-right:none}
+.sched-t thead th{
+  background:var(--hdr);color:#fff;font-size:10px;
+  font-weight:600;padding:8px 4px;letter-spacing:.02em;
+}
+.sched-t thead th:first-child{border-radius:var(--radius-sm) 0 0 0}
+.sched-t thead th:last-child{border-radius:0 var(--radius-sm) 0 0}
+.sched-t thead th.we{background:#7F1D1D}
+.sched-t tbody tr:last-child td{border-bottom:none}
+.sched-t tbody tr:hover td{background:rgba(22,163,74,.04)}
+.nc{
+  text-align:left;padding:6px 10px;font-weight:600;font-size:12px;
+  min-width:130px;position:sticky;left:0;z-index:1;background:inherit;
+  border-right:2px solid var(--border2)!important;
+}
+.pc{
+  text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);
+  min-width:90px;position:sticky;left:130px;z-index:1;background:inherit;
+  border-right:2px solid var(--border2)!important;
+}
+.hc{
+  background:var(--card2);font-size:9px;color:var(--muted2);
+  text-align:right;padding:4px 10px;font-style:italic;
+}
+.ec{
+  cursor:pointer;transition:all .15s;min-width:54px;
+  font-weight:600;font-size:11px;position:relative;
+}
+.ec:hover{transform:scale(1.08);box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:2;border-radius:5px}
+.r-dep .nc,.r-dep .pc{background:var(--dep-bg)}
+.r-mgr .nc,.r-mgr .pc{background:var(--mgr-bg)}
+.r-dir .nc,.r-dir .pc{background:var(--dir-bg)}
+.r-hr  .nc,.r-hr  .pc{background:var(--hr-bg)}
+
+/* ── Shift cell pills ── */
+.ci-m{background:#1D4ED8;color:#fff;font-weight:700;border-radius:5px;letter-spacing:-.2px}
+.ci-v{background:#15803D;color:#fff;font-weight:700;border-radius:5px;letter-spacing:-.2px}
+.ci-n{background:#6D28D9;color:#fff;font-weight:700;border-radius:5px;letter-spacing:-.2px}
+.cc-m{background:#DBEAFE;color:#1E40AF;font-weight:600;border-radius:5px}
+.cc-v{background:#DCFCE7;color:#14532D;font-weight:600;border-radius:5px}
+.crdm{background:#F59E0B;color:#fff;font-weight:700;border-radius:5px;letter-spacing:-.2px}
+.ck{background:#DB2777;color:#fff;font-weight:700;border-radius:5px}
+.coff{background:#F1F5F9;color:#94A3B8;border-radius:5px;font-weight:400}
+.cvac{background:#FEF3C7;color:#92400E;font-weight:700;border-radius:5px}
+.csck{background:#FFE4E6;color:#9F1239;font-weight:700;border-radius:5px}
+.cwish{background:#E0E7FF;color:#3730A3;font-weight:700;border-radius:5px;border:1.5px dashed #6366F1}
+.cblk{background:#FFF1F2;color:#9F1239;font-weight:700;border-radius:5px;border:1.5px solid #FECDD3;font-size:9px}
+.year-card{border:1.5px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .18s}
+.year-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.year-ok{border-color:#86EFAC;background:#F0FDF4}
+.year-warn{border-color:#FCD34D;background:#FFFBEB}
+.uncov-col{background:rgba(239,68,68,.18)!important;position:relative}
+.uncov-col::after{content:'!';position:absolute;top:1px;right:2px;font-size:9px;font-weight:900;color:#DC2626}
+.cman{background:#E0F2FE;color:#0369A1;font-weight:600}
+
+/* ── Validation ── */
+.vrow{
+  display:flex;align-items:center;gap:8px;padding:7px 8px;
+  border-bottom:1px solid var(--border);font-size:12px;border-radius:6px;
+}
+.vrow:last-child{border-bottom:none}
+.vrow-click{cursor:pointer;transition:background .15s}
+.vrow-click:hover{background:#FEFCE8}
+.vdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px rgba(0,0,0,.06)}
+.vhl-hint{font-size:10px;color:#92400E;margin-left:auto;white-space:nowrap;font-weight:500}
+.v-hl{
+  outline:3px solid #F59E0B!important;outline-offset:-1px;
+  animation:vhl-pulse .7s ease infinite alternate;
+}
+@keyframes vhl-pulse{0%{box-shadow:0 0 0 3px rgba(245,158,11,.3)}100%{box-shadow:0 0 0 5px rgba(220,38,38,.3)}}
+
+/* ── Hours cards ── */
+.hrs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.hcard{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:14px;padding:16px 18px;transition:all .18s;
+}
+.hcard:hover{box-shadow:var(--shadow-md);border-color:var(--border2);transform:translateY(-2px)}
+.hname{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text)}
+.hpos{font-size:10px;color:var(--muted);margin-bottom:10px;font-weight:500}
+.hrow{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)}
+.hrow:last-of-type{border-bottom:none}
+.hlbl{color:var(--muted)}.hval{font-weight:700;color:var(--text2)}
+.hpct{font-size:22px;font-weight:800;text-align:center;margin:10px 0 6px;letter-spacing:-1px}
+.hbar-w{background:var(--bg);border-radius:6px;height:7px;overflow:hidden;border:1px solid var(--border)}
+.hbar{height:100%;border-radius:6px;transition:width .5s ease}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.mbox{
+  background:var(--card);border-radius:var(--radius-lg);padding:22px 24px;
+  width:360px;max-height:88vh;overflow-y:auto;
+  box-shadow:var(--shadow-xl);border:1px solid var(--border);
+}
+.mtitle{font-size:16px;font-weight:700;margin-bottom:14px;color:var(--text);letter-spacing:-.3px}
+.msec{font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.sb{
+  padding:9px 6px;font-size:12px;font-weight:600;
+  border:1.5px solid transparent;border-radius:8px;
+  cursor:pointer;transition:all .15s;font-family:inherit;
+}
+.sb:hover{transform:scale(1.02);box-shadow:var(--shadow-sm)}
+.sb.active{outline:2.5px solid var(--hdr);outline-offset:2px;box-shadow:var(--shadow-sm)}
+.rdm-row{
+  display:none;gap:8px;align-items:center;margin-bottom:10px;
+  padding:9px 12px;background:#FFFBEB;border-radius:9px;
+  font-size:12px;border:1px solid #FCD34D;
+}
+.rdm-row input{font-size:12px;padding:5px 8px;border:1px solid #FCD34D;border-radius:6px;background:#fff}
+.crow{display:flex;gap:8px;margin-bottom:12px}
+.crow input{flex:1;font-size:12px}
+.mactions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.mok{padding:9px 20px;font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent-h));color:#fff;border:none;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(22,163,74,.2)}
+.mok:hover{box-shadow:0 4px 16px rgba(22,163,74,.3);transform:translateY(-1px)}
+.mcancel{padding:9px 16px;font-size:13px;font-weight:600;background:var(--card);color:var(--muted);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-family:inherit}
+.mcancel:hover{background:var(--bg);color:var(--text2)}
+
+/* ── Recalc modal ── */
+.rv-item{
+  padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;
+  cursor:pointer;margin-bottom:8px;font-size:12px;font-weight:500;
+  transition:all .15s;
+}
+.rv-item:hover{border-color:var(--border2);box-shadow:var(--shadow-sm)}
+.rv-item.sel{border-color:var(--accent);background:var(--accent-soft);color:#14532D}
+.rcalc-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.rcalc-overlay.open{display:flex}
+
+/* ── Month tabs ── */
+.mtab{padding:5px 10px;font-size:11px;font-weight:600;border:1.5px solid var(--border);border-radius:7px;cursor:pointer;background:var(--card);color:var(--muted);transition:all .12s}
+.mtab:hover{border-color:var(--border2);color:var(--text2)}
+.mtab.active{background:var(--hdr);color:#fff;border-color:var(--hdr)}
+
+/* ── Banners ── */
+#lock-note{font-size:11px;color:#1D4ED8;background:#EFF8FF;padding:7px 12px;border-radius:8px;margin-bottom:10px;display:none;border:1px solid #93C5FD;font-weight:500}
+#manual-banner{display:none;font-size:11px;color:#92400E;background:#FFFBEB;padding:7px 12px;border-radius:8px;margin-bottom:10px;border:1px solid #FCD34D;font-weight:500}
+
+/* ── Auth ── */
+#auth-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0F172A 0%,#1E3A5F 60%,#0F2D1F 100%);display:flex;align-items:center;justify-content:center}
+.auth-box{
+  background:rgba(255,255,255,.97);border-radius:20px;padding:40px 44px;
+  width:380px;box-shadow:0 32px 64px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.1);
+  text-align:center;backdrop-filter:blur(20px);
+}
+.auth-logo{font-size:40px;margin-bottom:10px;display:block}
+.auth-title{font-size:22px;font-weight:800;color:var(--hdr);margin-bottom:4px;letter-spacing:-.5px}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:28px;font-weight:400}
+.auth-field{position:relative;margin-bottom:14px}
+.auth-field input{
+  width:100%;padding:13px 44px 13px 14px;font-size:15px;
+  border:2px solid var(--border);border-radius:11px;
+  letter-spacing:.06em;background:#fff;transition:all .18s;
+  font-family:inherit;
+}
+.auth-field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(22,163,74,.12)}
+.auth-field input.err{border-color:var(--danger)}
+.auth-eye{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted)}
+.auth-btn{
+  width:100%;padding:14px;font-size:15px;font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent-h));
+  color:#fff;border:none;border-radius:11px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(22,163,74,.3);transition:all .2s;
+  font-family:inherit;margin-top:4px;
+}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(22,163,74,.35)}
+.auth-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.auth-err{font-size:12px;color:var(--danger);margin-top:10px;min-height:18px;font-weight:600}
+.auth-hint{font-size:11px;color:var(--muted2);margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.do-shake{animation:shake .4s ease}
+
+@media(max-width:640px){
+  .app{padding:16px 12px 80px}
+  .emp-main{grid-template-columns:1fr 1fr}
+  .row-3{grid-template-columns:1fr 1fr}
+  .hdr{padding:16px 20px}
+  .card{padding:16px 18px}
+  .auth-box{width:calc(100vw - 40px);padding:28px 24px}
+}
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-box" id="auth-box">
+    <div class="auth-logo">📋</div>
+    <div class="auth-title">Расписание ПБО</div>
+    <div class="auth-sub">Введите пароль для доступа</div>
+    <div class="auth-field">
+      <input type="password" id="auth-inp" placeholder="Пароль" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')authSubmit()"
+        oninput="this.classList.remove('err');document.getElementById('auth-err').textContent=''">
+      <button class="auth-eye" onclick="authToggle()" type="button">👁</button>
+    </div>
+    <button class="auth-btn" id="auth-btn" onclick="authSubmit()">Войти</button>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-hint">Доступ только для сотрудников ПБО</div>
+  </div>
+</div>
+
+<div class="app" id="main-app" style="display:none">
+<div class="hdr">
+  <div class="hdr-icon"></div>
+  <div style="flex:1">
+    <h1>Расписание ПБО</h1>
+    <p>Планировщик смен с автоматической генерацией и контролем норм</p>
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,.35);text-align:right;line-height:1.6">
+    <div id="hdr-period" style="font-weight:500;color:rgba(255,255,255,.6)"></div>
+    <div>ПБО</div>
+  </div>
+</div>
+
+<div class="tabs" id="main-tabs">
+  <button class="tab active" onclick="go('setup')">⚙️ Настройка</button>
+  <button class="tab" onclick="go('sched')">📅 Расписание</button>
+  <button class="tab" onclick="go('hours')">⏱ Часы</button>
+  <button class="tab" onclick="go('legend')">ℹ️ Обозначения</button>
+  <button class="tab" onclick="go('ai')">🤖 ИИ-анализ</button>
+  <button class="tab" onclick="go('assist')">💡 Помощник</button>
+  <button class="tab" onclick="go('year')">📆 Год</button>
+  <span style="border-left:1px solid var(--border);margin:3px 4px"></span>
+  <span style="font-size:10px;color:var(--muted);align-self:center;white-space:nowrap;flex-shrink:0">История:</span>
+  <div id="month-tabs" style="display:flex;gap:3px;flex-shrink:0"></div>
+</div>
+
+<!-- SETUP -->
+<div class="panel active" id="tab-setup">
+  <div class="card">
+    <div class="card-title">📅 Период и цель</div>
+    <div class="row-3">
+      <div class="field"><label>Месяц</label><input type="number" id="inp-m" min="1" max="12" value="7" oninput="updatePeriod()"></div>
+      <div class="field"><label>Год</label><input type="number" id="inp-y" min="2024" max="2035" value="2026" oninput="updatePeriod()"></div>
+      <div class="field"><label>Цель часов/мес на чел.</label><input type="number" id="inp-goal" min="40" max="300" value="168"></div>
+    </div>
+    <div id="period-lbl" style="font-size:11px;color:var(--muted)"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">👥 Сотрудники</div>
+    <div class="sep">Руководство (смены — вручную)</div>
+    <div id="mgmt-list"></div>
+    <div class="sep" style="margin-top:10px">Менеджеры расписания</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:8px;padding:6px 10px;background:#eff6ff;border-radius:6px;border:1px solid #bfdbfe">
+      💡 Нажмите <strong>⚙ Настроить</strong> чтобы выбрать <strong>департамент</strong> и ограничения
+    </p>
+    <div id="staff-list"></div>
+  </div>
+  <button class="btn btn-primary" id="btn-gen" onclick="runGen()">▶&nbsp; Сгенерировать расписание</button>
+  <div class="alert alert-ok" id="a-ok"></div>
+  <div class="alert alert-err" id="a-err"></div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="panel" id="tab-sched">
+  <div class="card" style="padding:11px 15px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span class="card-title" style="margin:0">📊 Расписание</span>
+        <span id="sp-label" style="font-size:11px;color:var(--muted)"></span>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="showRecalc()" style="gap:5px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Пересчитать
+        </button>
+        <button class="btn btn-secondary" onclick="doExport()" style="gap:5px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Excel
+        </button>
+        <button class="btn btn-secondary" onclick="saveToFile()" title="Сохранить в файл JSON" style="gap:5px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Сохранить
+        </button>
+        <button class="btn btn-secondary" onclick="loadFromFile()" title="Загрузить из файла JSON" style="gap:5px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Загрузить
+        </button>
+      </div>
+    </div>
+    <div id="vpick" style="display:none;margin-bottom:10px"></div>
+    <div id="lock-note" style="font-size:10px;color:var(--accent);background:#eff6ff;padding:5px 8px;border-radius:5px;margin-bottom:7px;display:none">Нажмите на ячейку → в модалке кнопка <strong>«Заблокировать»</strong> фиксирует её при пересчёте</div>
+    <div id="manual-banner" style="display:none;font-size:11px;color:#92400e;background:#fef3c7;padding:6px 10px;border-radius:6px;margin-bottom:8px;border:1px solid #f59e0b"></div>
+    <div id="sched-empty" style="text-align:center;color:var(--muted);padding:28px">Сначала сгенерируйте расписание</div>
+    <div class="sched-wrap" id="sched-wrap" style="display:none"></div>
+  </div>
+  <div class="card" id="val-card" style="display:none">
+    <div class="card-title">✅ Проверка</div>
+    <div id="val-body"></div>
+  </div>
+</div>
+
+<!-- HOURS -->
+<div class="panel" id="tab-hours">
+  <div class="card">
+    <div class="card-title">⏱ Часы за месяц</div>
+    <div id="hrs-empty" style="text-align:center;color:var(--muted);padding:20px">Сначала сгенерируйте расписание</div>
+    <div class="hrs-grid" id="hrs-grid" style="display:none"></div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="panel" id="tab-legend">
+  <div class="card">
+    <div class="card-title">🎨 Обозначения</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="background:#f1f5f9">
+        <th style="padding:7px 10px;text-align:left">Код</th>
+        <th style="padding:7px 10px;text-align:left">Название</th>
+        <th style="padding:7px 10px;text-align:left">Время</th>
+        <th style="padding:7px 10px;text-align:left">Кто</th>
+        <th style="padding:7px 10px;text-align:right">Часов</th>
+      </tr></thead>
+      <tbody id="leg-body"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Правила</div>
+    <ol style="padding-left:17px;line-height:2.1;font-size:12px">
+      <li>В день: <strong>ins 7:45 · ins 15:45 · ins 23:45 · C 7:45 · C 15:45</strong> — 5 позиций, строго 5 человек</li>
+      <li><strong>Замы:</strong> строго 5 смен в неделю (не больше, не меньше) + 2 выходных; часы не превышают цель; ins-смены приоритетны, прилавок — если ins заняты</li>
+      <li><strong>Менеджеры:</strong> минимум 2 выходных в неделю, не более 3 ночных подряд</li>
+      <li><strong>ins 23:45</strong> — только Менеджер ПБО, единственный в смене</li>
+      <li><strong>Правило 13 часов:</strong> после вечерней нельзя утреннюю; после ночной — только ночная или выходной</li>
+      <li><strong>RDM</strong> — еженедельно у каждого зама, не более 1 в день</li>
+      <li>Отпуск / Больничный — смены не ставятся; при выборе предлагается заполнить всю неделю</li>
+      <li>🔒 Двойной клик на ячейку блокирует её — не меняется при пересчёте</li>
+      <li>Клик на нарушение в проверке правил → подсвечивает ячейки в расписании</li>
+    </ol>
+  </div>
+</div>
+
+<div class="panel" id="tab-ai">
+  <div class="card">
+    <div class="card-title">🤖 ИИ-анализ расписания</div>
+
+    <!-- API key input -->
+    <div id="ai-key-block" style="margin-bottom:18px;padding:14px 18px;background:var(--card2);border:1.5px solid var(--border);border-radius:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:16px">🔑</span>
+        <span style="font-size:12px;font-weight:700;color:var(--text2)">Groq API — бесплатно</span>
+        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:#DCFCE7;color:#15803D;border:1px solid #86EFAC">FREE</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="password" id="ai-key-inp" placeholder="gsk_..." style="flex:1;font-size:13px">
+        <button class="btn btn-secondary" onclick="saveKey()" style="white-space:nowrap">Сохранить</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">
+        Получить бесплатно: <a href="https://console.groq.com" target="_blank" style="color:var(--accent);font-weight:600">console.groq.com</a>
+        → Sign Up → API Keys → Create API Key → скопируйте ключ (gsk_...).<br>
+        Ключ хранится только в памяти вкладки. Бесплатный лимит: 14 400 запросов/день.
+      </div>
+    </div>
+
+    <!-- Analysis options -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" id="ai-actions">
+      <button onclick="runAnalysis('full')" id="ai-btn-full" style="padding:9px 16px;font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent-h));color:#fff;border:none;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        📊 Полный анализ
+      </button>
+      <button onclick="runAnalysis('hours')" id="ai-btn-hours" style="padding:9px 14px;font-size:12px;font-weight:600;background:var(--card);color:var(--text2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer">
+        ⏱ Часы и нагрузка
+      </button>
+      <button onclick="runAnalysis('comfort')" id="ai-btn-comfort" style="padding:9px 14px;font-size:12px;font-weight:600;background:var(--card);color:var(--text2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer">
+        😊 Комфорт
+      </button>
+      <button onclick="runAnalysis('violations')" id="ai-btn-violations" style="padding:9px 14px;font-size:12px;font-weight:600;background:var(--card);color:var(--text2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer">
+        ⚠️ Нарушения
+      </button>
+    </div>
+
+    <!-- Custom question -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="text" id="ai-q" placeholder="Свой вопрос: например, почему у Шибаева 3 ночных подряд?" style="flex:1">
+      <button class="btn btn-secondary" onclick="runAnalysis('custom')" style="white-space:nowrap">Спросить →</button>
+    </div>
+
+    <!-- Status / loading -->
+    <div id="ai-loading" style="display:none;text-align:center;padding:30px;color:var(--muted)">
+      <div style="font-size:28px;margin-bottom:10px">⏳</div>
+      <div style="font-size:13px;font-weight:500">ИИ анализирует расписание...</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:4px">Обычно занимает 10–20 секунд</div>
+    </div>
+
+    <!-- Result -->
+    <div id="ai-result" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em">Результат анализа</div>
+        <button class="btn btn-secondary" onclick="clearResult()" style="padding:4px 10px;font-size:11px">✕ Закрыть</button>
+      </div>
+      <div id="ai-result-body" style="font-size:13px;line-height:1.75;color:var(--text2);
+        background:var(--card2);border:1px solid var(--border);border-radius:10px;
+        padding:18px 22px;white-space:pre-wrap;max-height:600px;overflow-y:auto">
+      </div>
+    </div>
+
+    <!-- No schedule warning -->
+    <div id="ai-no-sched" style="display:none;text-align:center;padding:30px;color:var(--muted)">
+      <div style="font-size:28px;margin-bottom:8px">📋</div>
+      <div style="font-size:13px">Сначала сгенерируйте расписание</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="tab-assist">
+  <div class="card">
+    <div class="card-title">💡 ИИ-помощник по расписанию</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px">
+      Groq проанализирует расписание и предложит конкретные изменения — вы принимаете или пропускаете каждое.
+    </p>
+
+    <!-- Key check -->
+    <div id="assist-key-block" style="margin-bottom:16px;padding:12px 16px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">🔑 Groq API-ключ</div>
+      <div style="display:flex;gap:8px">
+        <input type="password" id="assist-key-inp" placeholder="gsk_..." style="flex:1;font-size:13px">
+        <button class="btn btn-secondary" onclick="assistSaveKey()">Сохранить</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Тот же ключ что и на вкладке ИИ-анализ</div>
+    </div>
+
+    <!-- Options -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <button onclick="runAssist('full')" id="assist-btn" style="padding:9px 16px;font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent-h));color:#fff;border:none;border-radius:8px;cursor:pointer">
+        🔍 Найти улучшения
+      </button>
+      <button onclick="runAssist('violations')" id="assist-btn2" style="padding:9px 14px;font-size:12px;font-weight:600;background:var(--card);color:var(--text2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer">
+        ⚠️ Исправить нарушения
+      </button>
+      <button onclick="runAssist('balance')" id="assist-btn3" style="padding:9px 14px;font-size:12px;font-weight:600;background:var(--card);color:var(--text2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer">
+        ⚖️ Выровнять нагрузку
+      </button>
+    </div>
+
+    <!-- Custom prompt -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="text" id="assist-custom" placeholder="Своя задача: например, дай Шибаеву больше утренних смен" style="flex:1">
+      <button class="btn btn-secondary" onclick="runAssist('custom')" style="white-space:nowrap">Выполнить →</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="assist-loading" style="display:none;text-align:center;padding:24px;color:var(--muted)">
+      <div style="font-size:26px;margin-bottom:8px">⏳</div>
+      <div style="font-size:13px;font-weight:500">Groq анализирует расписание...</div>
+    </div>
+
+    <!-- Results -->
+    <div id="assist-results" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700">Предложения ИИ</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary" onclick="applyAllSuggestions()" style="padding:6px 12px;font-size:11px;background:#F0FDF4;border-color:#86EFAC;color:#15803D;font-weight:700">✅ Принять все</button>
+          <button class="btn btn-secondary" onclick="clearSuggestions()" style="padding:6px 12px;font-size:11px">✕ Закрыть</button>
+        </div>
+      </div>
+      <div id="assist-summary" style="font-size:12px;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:var(--card2);border-radius:8px"></div>
+      <div id="assist-cards" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- No schedule -->
+    <div id="assist-no-sched" style="display:none;text-align:center;padding:24px;color:var(--muted)">
+      <div style="font-size:26px;margin-bottom:8px">📋</div>
+      <div style="font-size:13px">Сначала сгенерируйте расписание</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="tab-year">
+  <div class="card">
+    <div class="card-title">📆 Годовое расписание</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px">
+      Сгенерируйте расписание на весь год. Каждый месяц можно открыть отдельно на вкладке «Расписание».
+    </p>
+    <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
+      <div class="field" style="margin-bottom:0">
+        <label>Год</label>
+        <input type="number" id="year-inp" min="2024" max="2035" value="2026" style="width:100px">
+      </div>
+      <button class="btn btn-primary" onclick="runYearGen()" style="width:auto;padding:10px 24px" id="year-btn">
+        ▶ Сгенерировать весь год
+      </button>
+    </div>
+    <div id="year-progress" style="display:none;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px" id="year-progress-label">Генерация...</div>
+      <div style="background:var(--bg);border-radius:6px;height:8px;overflow:hidden;border:1px solid var(--border)">
+        <div id="year-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-h));width:0%;transition:width .3s;border-radius:6px"></div>
+      </div>
+    </div>
+    <div id="year-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- CELL MODAL -->
+<div class="overlay" id="m-cell" style="display:none" onclick="closeCell()">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mtitle" id="m-cell-title">Смена</div>
+    <div class="msec">Стандартные смены</div>
+    <div class="sgrid" id="m-sgrid"></div>
+    <div class="rdm-row" id="m-rdm-row" style="display:none">
+      <span style="white-space:nowrap;font-weight:600;color:#92400e">Время RDM:</span>
+      <input type="text" id="m-rdm-t" placeholder="напр. 7:45–16:15">
+    </div>
+    <div class="msec">Отсутствие</div>
+    <div style="display:flex;gap:5px;margin-bottom:8px">
+      <button class="sb" style="background:#fef3c7;color:#92400e;flex:1" onclick="mpick('Отпуск',this)">🌴 Отпуск</button>
+      <button class="sb" style="background:#fee2e2;color:#991b1b;flex:1" onclick="mpick('Больничный',this)">🤒 Больничный</button>
+    </div>
+    <div class="msec">Своя смена</div>
+    <div class="crow">
+      <input type="text" id="m-custom" placeholder="напр. 10:00–19:00">
+      <button class="btn btn-secondary" onclick="addCustom()">+ Добавить</button>
+    </div>
+    <div id="m-lock-row" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 10px;background:var(--color-background-secondary,#f8f9fa);border-radius:7px;font-size:12px">
+      <span id="m-lock-icon" style="font-size:15px">🔓</span>
+      <span id="m-lock-text" style="color:var(--muted,#6b7280);flex:1">Не заблокировано — сбросится при пересчёте</span>
+      <button id="m-lock-btn" onclick="toggleCellLock()" style="padding:4px 10px;font-size:11px;font-weight:600;border:1px solid var(--border,#e2e6ea);border-radius:6px;background:#fff;cursor:pointer;white-space:nowrap">Заблокировать</button>
+    </div>
+    <div id="m-block-row" style="display:none;align-items:center;gap:8px;margin-bottom:10px;padding:7px 10px;background:#FFF1F2;border-radius:7px;font-size:12px;border:1px solid #FECDD3">
+      <span style="font-size:14px">🚫</span>
+      <span style="flex:1;color:#9F1239">Сотрудник недоступен в этот день</span>
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:600;color:#9F1239">
+        <input type="checkbox" id="m-block-cb" onchange="toggleDayBlock(this.checked)" style="width:14px;height:14px;accent-color:#DC2626">
+        Запретить смену
+      </label>
+    </div>
+    <div class="mactions">
+      <button class="mcancel" onclick="closeCell()">Отмена</button>
+      <button class="mok" onclick="confirmCell()">Применить</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECALC MODAL -->
+<div class="rcalc-overlay" id="m-recalc" onclick="closeRecalc()">
+  <div class="mbox" onclick="event.stopPropagation()" style="width:380px">
+    <div class="mtitle">🔄 Варианты пересчёта</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Все варианты соблюдают одинаковые правила: 2 выходных у замов, 5 позиций каждый день, RDM еженедельно. Заблокированные ячейки сохранятся.</p>
+    <div id="rv-list"></div>
+    <div class="mactions">
+      <button class="mcancel" onclick="closeRecalc()">Отмена</button>
+      <button class="mok" onclick="applyRecalc()">Применить выбранный</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════
+// SHIFT DEFINITIONS
+// ═══════════════════════════════════════
+const SH={
+  INS_M:'ins 7:45', INS_V:'ins 15:45', INS_N:'ins 23:45',
+  C_M:'C 7:45', C_V:'C 15:45', RDM:'RDM', K:'K',
+  OFF:'Вых', VAC:'Отпуск', SICK:'Больничный', WISH:'Вых*'
+};
+const SH_HRS={[SH.INS_M]:8,[SH.INS_V]:8,[SH.INS_N]:8,[SH.C_M]:8,[SH.C_V]:8,[SH.RDM]:8,[SH.K]:8,[SH.OFF]:0,[SH.VAC]:0,[SH.SICK]:0};
+const SDEFS=[
+  {code:SH.INS_M,name:'Лидер смены — утро',   time:'07:45–16:15',role:'dep',css:'ci-m',bg:'#bfdbfe',ft:'#1e40af',bd:true},
+  {code:SH.INS_V,name:'Лидер смены — вечер',  time:'15:45–00:15',role:'dep',css:'ci-v',bg:'#bbf7d0',ft:'#14532d',bd:true},
+  {code:SH.INS_N,name:'Лидер смены — ночь',   time:'23:45–08:15',role:'mgr',css:'ci-n',bg:'#ddd6fe',ft:'#3730a3',bd:true},
+  {code:SH.C_M,  name:'Лидер участка — утро', time:'07:45–16:15',role:'any',css:'cc-m',bg:'#dbeafe',ft:'#1e40af',bd:false},
+  {code:SH.C_V,  name:'Лидер участка — вечер',time:'15:45–00:15',role:'any',css:'cc-v',bg:'#d1fae5',ft:'#065f46',bd:false},
+  {code:SH.RDM,  name:'RDM',                  time:'утро/вечер',  role:'dep',css:'crdm',bg:'#fde68a',ft:'#92400e',bd:true},
+  {code:SH.K,    name:'K — Смена кухни',       time:'07:45–16:15',role:'any',css:'ck',  bg:'#fce7f3',ft:'#9d174d',bd:true},
+  {code:SH.OFF,  name:'Выходной',              time:'—',           role:'any',css:'coff',bg:'#f1f5f9',ft:'#64748b',bd:false},
+  {code:SH.WISH, name:'Заказанный выходной', time:'—', role:'any',css:'cwish',bg:'#E0E7FF',ft:'#3730A3',bd:false},
+  {code:SH.VAC,  name:'Отпуск',               time:'—',           role:'any',css:'cvac',bg:'#fef3c7',ft:'#92400e',bd:false},
+  {code:SH.SICK, name:'Больничный',            time:'—',           role:'any',css:'csck',bg:'#fee2e2',ft:'#991b1b',bd:false},
+];
+const SH_CSS=Object.fromEntries(SDEFS.map(s=>[s.code,s.css]));
+SH_CSS[SH.WISH]='cwish';
+const SH_BG =Object.fromEntries(SDEFS.map(s=>[s.code,s.bg]));
+const SH_FT =Object.fromEntries(SDEFS.map(s=>[s.code,s.ft]));
+const BLOCKED=new Set([SH.VAC,SH.SICK]);
+const DEPT_LIST=['—','Люди','Сервис','Производство'];
+
+function isWork(s){return!!s&&s!==SH.OFF&&s!==SH.VAC&&s!==SH.SICK&&s!==SH.WISH&&s!=='Недоступен'&&s!=='';}
+function isEve(s){return s===SH.INS_V||s===SH.C_V;}
+function isMorn(s){return s===SH.INS_M||s===SH.C_M||s===SH.RDM||(s&&s.startsWith('RDM'));}
+function isNight(s){return s===SH.INS_N;}
+function isBlocked(s){return BLOCKED.has(s);}
+function getCss(s){
+  if(!s)return'';
+  if(s===SH.VAC)return'cvac';if(s===SH.SICK)return'csck';
+  if(s===SH.WISH)return'cwish';
+  if(s==='Недоступен')return'cblk';
+  if(s&&s.startsWith('RDM'))return'crdm';
+  return SH_CSS[s]||'cman';
+}
+function getHrs(s){
+  if(!s)return 0;
+  if(s&&s.startsWith('RDM'))return SH_HRS[SH.RDM]||8;
+  return SH_HRS[s]||0;
+}
+
+const MRU=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const DOW=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+// ═══════════════════════════════════════
+// EMPLOYEES
+// ═══════════════════════════════════════
+const MGMT=[
+  {name:'Семенов Александр',pos:'Директор ПБО',tab:'001',type:'dir'},
+  {name:'Галыба Наталья',   pos:'Отдел кадров',tab:'002',type:'hr'},
+];
+const STAFF=[
+  {name:'Шибаев Даниил',     pos:'РД Люди',            tab:'3070',type:'dep',dept:'Люди'},
+  {name:'Донченко Григорий', pos:'РД Сервис',           tab:'3179',type:'dep',dept:'Сервис'},
+  {name:'Зубцова Юлия',      pos:'РД Производство',     tab:'3056',type:'dep',dept:'Производство'},
+  {name:'Кромских Анастасия',pos:'Ассистент директора', tab:'3060',type:'dep',dept:'—'},
+  {name:'Бородина Анастасия',pos:'Менеджер ПБО',        tab:'81',  type:'mgr',dept:'Сервис'},
+  {name:'Ефремова Валерия',  pos:'Менеджер ПБО',        tab:'20',  type:'mgr',dept:'Люди'},
+  {name:'Бахилов Дмитрий',   pos:'Менеджер ПБО',        tab:'159', type:'mgr',dept:'Производство'},
+  {name:'Гарипов Эмиль',     pos:'Менеджер ПБО',        tab:'16',  type:'mgr',dept:'Производство'},
+  {name:'Сидорина Кристина', pos:'Менеджер ПБО',        tab:'87',  type:'mgr',dept:'Люди'},
+  {name:'Кондратюк Алёна',   pos:'Менеджер ПБО',        tab:'64',  type:'mgr',dept:'Сервис'},
+];
+let cons=STAFF.map(()=>({noNight:false,noEvening:false,onlyMorning:false,onlyNight:false,onlyEvening:false,noWeekend:false,wishes:[],blockedDays:[],daycons:[]}));
+let customShifts=[];
+
+// ═══════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════
+let ST={sched:[],mgmtSched:[],locked:[],emps:[],days:0,year:0,month:0,grid:[]};
+var schedHistory={}; // key: 'year-month' -> schedule snapshot
+var yearHistory={};
+let history={};
+let rvList=[];
+let rvSel=0;
+let cellCtx={kind:'',idx:0,d:0,cur:''};
+let _lastChecks=[];
+let _hlTimer=null;
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function go(id){
+  const ids=['setup','sched','hours','legend','ai','assist','year'];
+  document.querySelectorAll('.tab:not(.mtab)').forEach((t,i)=>t.classList.toggle('active',ids[i]===id));
+  ids.forEach(x=>{const p=document.getElementById('tab-'+x);if(p)p.classList.toggle('active',x===id);});
+}
+
+// ═══════════════════════════════════════
+// UI BUILD
+// ═══════════════════════════════════════
+function updatePeriod(){
+  const m=+document.getElementById('inp-m').value||1;
+  const y=+document.getElementById('inp-y').value||2026;
+  if(m>=1&&m<=12&&y>=2024)
+    document.getElementById('period-lbl').textContent=MRU[m-1]+' '+y+' — '+new Date(y,m,0).getDate()+' дней';
+}
+
+function badgeFor(type){
+  return({dep:['badge-dep','Зам.'],mgr:['badge-mgr','Мен.'],dir:['badge-dir','Дир.'],hr:['badge-hr','Кадры']})[type]||['',''];
+}
+
+function deptOptions(cur){
+  return DEPT_LIST.map(function(d){
+    return '<option value="'+d+'"'+(((cur||'—')===d)?' selected':'')+'>'+d+'</option>';
+  }).join('');
+}
+
+function buildMgmt(){
+  var h='';
+  MGMT.forEach(function(p,i){
+    var bl=badgeFor(p.type);
+    h+='<div class="emp-row '+p.type+'"><div class="emp-main">';
+    h+='<div><input id="mn-'+i+'" value="'+p.name+'" style="font-size:12px"><div><span class="badge '+bl[0]+'">'+bl[1]+'</span></div></div>';
+    h+='<div style="font-size:11px;color:var(--muted)">'+p.pos+'</div>';
+    h+='<div></div><div style="font-size:10px;color:var(--muted)">Ручной ввод в расписании</div>';
+    h+='</div></div>';
+  });
+  document.getElementById('mgmt-list').innerHTML=h;
+}
+
+function buildStaff(){
+  var h='';
+  STAFF.forEach(function(e,i){
+    var bl=badgeFor(e.type); var c=cons[i];
+    // wishes rendered dynamically after buildStaff
+    h+='<div class="emp-row '+e.type+'" id="er-'+i+'">';
+    h+='<div class="emp-main">';
+    h+='<div><input id="sn-'+i+'" value="'+e.name+'" style="font-size:12px"><div><span class="badge '+bl[0]+'">'+bl[1]+'</span></div></div>';
+    h+='<div><select id="st-'+i+'" onchange="onType('+i+')"><option value="dep"'+(e.type==='dep'?' selected':'')+'>Зам. директора</option><option value="mgr"'+(e.type==='mgr'?' selected':'')+'>Менеджер ПБО</option></select></div>';
+    h+='<div style="display:flex;flex-direction:column;gap:6px">';
+    h+='<div id="wishes-'+i+'" style="display:flex;flex-wrap:wrap;gap:5px;min-height:28px;align-items:center"></div>';
+    h+='<button onclick="addWish('+i+')" style="align-self:flex-start;padding:4px 10px;font-size:11px;font-weight:600;border:1.5px dashed #86EFAC;border-radius:6px;background:#F0FDF4;color:#15803D;cursor:pointer">+ Добавить выходной</button>';
+    h+='</div>';
+    h+='<button class="toggle-c" onclick="toggleD('+i+')">⚙ Настроить</button>';
+    h+='</div>';
+    h+='<div class="emp-detail" id="ed-'+i+'">';
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">';
+    h+='<label style="font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap">Департамент:</label>';
+    h+='<select style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border)" onchange="STAFF['+i+'].dept=this.value">'+deptOptions(e.dept)+'</select>';
+    h+='</div>';
+    h+='<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;margin-top:10px">Отпуск</div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin-bottom:5px">Укажите даты отпуска (с — по). Эти дни будут заблокированы как «Отпуск».</div>';
+    h+='<div id="vac-'+i+'" style="display:flex;flex-direction:column;gap:5px"></div>';
+    h+='<button onclick="addVacation('+i+')" style="margin-top:5px;padding:4px 10px;font-size:11px;border:1px dashed var(--border,#e2e6ea);border-radius:5px;background:transparent;cursor:pointer;color:var(--muted)">+ Добавить период отпуска</button>';
+    h+='<div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;margin-top:10px">Ограничения</div>';
+    h+='<div class="c-grid">';
+    h+='<label class="c-item"><input type="checkbox" id="cn-'+i+'"'+(c.noNight?' checked':'')+' onchange="cons['+i+'].noNight=this.checked"> Не ночь</label>';
+    h+='<label class="c-item"><input type="checkbox" id="cv-'+i+'"'+(c.noEvening?' checked':'')+' onchange="cons['+i+'].noEvening=this.checked"> Не вечер</label>';
+    h+='<label class="c-item"><input type="checkbox" id="cm-'+i+'"'+(c.onlyMorning?' checked':'')+' onchange="cons['+i+'].onlyMorning=this.checked"> Только утро</label>';
+    h+='<label class="c-item"><input type="checkbox" id="ce-'+i+'"'+(c.onlyEvening?' checked':'')+' onchange="cons['+i+'].onlyEvening=this.checked"> Только вечер</label>';
+    h+='<label class="c-item"><input type="checkbox" id="co-'+i+'"'+(c.onlyNight?' checked':'')+' onchange="cons['+i+'].onlyNight=this.checked"> Только ночь</label>';
+    h+='<label class="c-item"><input type="checkbox" id="cw-'+i+'"'+(c.noWeekend?' checked':'')+' onchange="cons['+i+'].noWeekend=this.checked"> Не в вых.</label>';
+    h+="</div>";
+    h+='<div style="margin-top:10px">';
+    h+='<div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Ограничение на день</div>';
+    h+='<div id="daycons-'+i+'" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px"></div>';
+    h+='<button onclick="addDayCon('+i+')" style="padding:4px 10px;font-size:11px;border:1px dashed var(--border2);border-radius:6px;background:transparent;cursor:pointer;color:var(--muted)">+ Добавить</button>';
+    h+='</div>';
+    h+='</div></div>';
+  });
+  document.getElementById('staff-list').innerHTML=h;
+}
+
+// ─── Dynamic wishes & vacations ───────────────────────────
+function renderWishes(){
+  var month=parseInt(document.getElementById('inp-m').value)||1;
+  var year=parseInt(document.getElementById('inp-y').value)||2026;
+  var MRU2=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  var mon=MRU2[month-1];
+  STAFF.forEach(function(e,i){
+    var c=cons[i]; var el=document.getElementById('wishes-'+i);
+    if(!el) return;
+    var h='';
+    (c.wishes||[]).forEach(function(v,wi){
+      var val=v||'';
+      var label=val?val+' '+mon:'';
+      h+='<label style="display:inline-flex;align-items:center;gap:4px;background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:8px;padding:5px 7px 5px 10px;cursor:text;min-width:100px">';
+      h+='<span style="font-size:10px;font-weight:700;color:#15803D;white-space:nowrap;min-width:52px">'+(label||'—')+'</span>';
+      h+='<input type="number" min="1" max="31" value="'+val+'" placeholder="день" '
+        +'data-wi="'+wi+'" data-ei="'+i+'" '
+        +'onchange="wishChange(this)" oninput="wishChange(this)" '
+        +'style="width:52px;font-size:13px;font-weight:700;border:1px solid #86EFAC;background:#fff;'
+        +'color:#15803D;padding:2px 5px;outline:none;border-radius:5px;-moz-appearance:textfield">';
+      h+='<button data-wi="'+wi+'" data-ei="'+i+'" onclick="removeWishBtn(this)" '
+        +'style="width:20px;height:20px;border:none;background:rgba(220,38,38,.1);'
+        +'border-radius:5px;cursor:pointer;color:#DC2626;font-size:14px;line-height:1;'
+        +'display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700">×</button>';
+      h+='</label>';
+    });
+    if(!c.wishes||c.wishes.length===0){
+      h+='<span style="font-size:11px;color:var(--muted2);font-style:italic">нет пожеланий — нажмите кнопку ниже</span>';
+    }
+    el.innerHTML=h;
+  });
+}
+
+function wishChange(el){
+  var i=+el.dataset.ei, wi=+el.dataset.wi;
+  if(!cons[i].wishes) cons[i].wishes=[];
+  cons[i].wishes[wi]=el.value?parseInt(el.value):null;
+  // Update the label next to input live
+  var lbl=el.previousElementSibling;
+  if(lbl){
+    var month=parseInt(document.getElementById('inp-m').value)||1;
+    var MRU2=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+    lbl.textContent=el.value?el.value+' '+MRU2[month-1]:'—';
+  }
+}
+
+function removeWishBtn(btn){
+  var i=+btn.dataset.ei, wi=+btn.dataset.wi;
+  removeWish(i,wi);
+}
+
+function addWish(i){
+  if(!cons[i].wishes) cons[i].wishes=[];
+  cons[i].wishes.push('');
+  renderWishes();
+}
+
+function removeWish(i,wi){
+  if(!cons[i].wishes) return;
+  cons[i].wishes.splice(wi,1);
+  renderWishes();
+}
+
+function setWish(i,wi,v){if(!cons[i].wishes)cons[i].wishes=[];cons[i].wishes[wi]=v?parseInt(v):null;}
+
+// Vacations: [{from:day, to:day}]
+function renderVacations(){
+  STAFF.forEach(function(e,i){
+    var c=cons[i]; var el=document.getElementById('vac-'+i);
+    if(!el) return;
+    var h='';
+    (c.vacations||[]).forEach(function(v,vi){
+      var fval=v.fday||''; var tval=v.tday||'';
+      h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">';
+      h+='<span style="font-size:11px;color:var(--muted)">с</span>';
+      h+='<input type="number" min="1" max="31" value="'+fval+'" placeholder="день" '
+        +'data-ei="'+i+'" data-vi="'+vi+'" data-field="fday" '
+        +'onchange="vacChange(this)" '
+        +'style="width:44px;font-size:11px;padding:4px 5px;border:1px solid var(--border2);border-radius:6px">';
+      h+='<span style="font-size:11px;color:var(--muted)">по</span>';
+      h+='<input type="number" min="1" max="31" value="'+tval+'" placeholder="день" '
+        +'data-ei="'+i+'" data-vi="'+vi+'" data-field="tday" '
+        +'onchange="vacChange(this)" '
+        +'style="width:44px;font-size:11px;padding:4px 5px;border:1px solid var(--border2);border-radius:6px">';
+      h+='<button data-ei="'+i+'" data-vi="'+vi+'" onclick="removeVacBtn(this)" '
+        +'style="border:none;background:none;cursor:pointer;color:#DC2626;font-size:12px;font-weight:600">× убрать</button>';
+      h+='</div>';
+    });
+    el.innerHTML=h;
+  });
+}
+
+function vacChange(el){
+  var i=+el.dataset.ei, vi=+el.dataset.vi, field=el.dataset.field;
+  if(!cons[i].vacations||!cons[i].vacations[vi]) return;
+  cons[i].vacations[vi][field]=el.value?parseInt(el.value):null;
+}
+
+function removeVacBtn(btn){
+  var i=+btn.dataset.ei, vi=+btn.dataset.vi;
+  removeVac(i,vi);
+}
+
+function addVacation(i){
+  if(!cons[i].vacations) cons[i].vacations=[];
+  cons[i].vacations.push({fday:'',tday:''});
+  renderVacations();
+}
+
+function removeVac(i,vi){
+  if(!cons[i].vacations) return;
+  cons[i].vacations.splice(vi,1);
+  renderVacations();
+}
+
+// setVac replaced by vacChange
+
+// Returns array of day-numbers (1-based) that are vacation for employee i in given month/year
+function getVacDays(i, year, month){
+  var daysInMonth=new Date(year,month,0).getDate();
+  var days=[];
+  ((cons[i]&&cons[i].vacations)||[]).forEach(function(v){
+    var fday=parseInt(v.fday)||1, tday=parseInt(v.tday)||fday;
+    for(var d=fday;d<=tday&&d<=daysInMonth;d++) days.push(d);
+  });
+  return days;
+}
+
+function buildLegend(){
+  var h='';
+  SDEFS.forEach(function(s){
+    h+='<tr style="background:'+s.bg+'">';
+    h+='<td style="padding:7px 10px;font-weight:'+(s.bd?'700':'500')+';color:'+s.ft+'">'+s.code+'</td>';
+    h+='<td style="padding:7px 10px;color:'+s.ft+'">'+s.name+'</td>';
+    h+='<td style="padding:7px 10px;color:'+s.ft+'">'+s.time+'</td>';
+    h+='<td style="padding:7px 10px;color:'+s.ft+'">'+(s.role==='dep'?'Зам. директора':s.role==='mgr'?'Менеджер ПБО':'Любой')+'</td>';
+    h+='<td style="padding:7px 10px;text-align:right;color:'+s.ft+'">'+(SH_HRS[s.code]||0)+'ч</td>';
+    h+='</tr>';
+  });
+  document.getElementById('leg-body').innerHTML=h;
+}
+
+function toggleD(i){document.getElementById('ed-'+i).classList.toggle('open');renderWishes();renderVacations();renderDayCons(i);}
+function onType(i){
+  var v=document.getElementById('st-'+i).value;
+  var bl=badgeFor(v);
+  var row=document.getElementById('er-'+i);
+  row.className='emp-row '+v;
+  row.querySelector('.badge').className='badge '+bl[0];
+  row.querySelector('.badge').textContent=bl[1];
+}
+
+function readInputs(){
+  var month=+document.getElementById('inp-m').value;
+  var year=+document.getElementById('inp-y').value;
+  var goal=+document.getElementById('inp-goal').value||168;
+  if(!month||month<1||month>12) throw new Error('Укажите месяц 1–12');
+  if(!year||year<2024) throw new Error('Некорректный год');
+  var emps=[],wishes=[],conArr=[];
+  for(var i=0;i<STAFF.length;i++){
+    emps.push({name:document.getElementById('sn-'+i).value.trim()||STAFF[i].name,
+               pos:STAFF[i].pos,tab:STAFF[i].tab,
+               type:document.getElementById('st-'+i).value,
+               dept:STAFF[i].dept||'—'});
+    // Read dynamic wish days
+    var w=[];
+    (cons[i].wishes||[]).forEach(function(v){var n=parseInt(v);if(n>=1&&n<=31)w.push(n);});
+    // Also add vacation days as wish days (algorithm will mark them as Отпуск)
+    var vacDays=getVacDays(i,year,month);
+    wishes.push({days:w, vacDays:vacDays});
+    conArr.push({
+      noNight:  document.getElementById('cn-'+i)?document.getElementById('cn-'+i).checked:false,
+      noEvening:document.getElementById('cv-'+i)?document.getElementById('cv-'+i).checked:false,
+      onlyMorning:document.getElementById('cm-'+i)?document.getElementById('cm-'+i).checked:cons[i].onlyMorning||false,
+      onlyEvening:document.getElementById('ce-'+i)?document.getElementById('ce-'+i).checked:cons[i].onlyEvening||false,
+      onlyNight:document.getElementById('co-'+i)?document.getElementById('co-'+i).checked:cons[i].onlyNight||false,
+      noWeekend:document.getElementById('cw-'+i)?document.getElementById('cw-'+i).checked:false,
+    });
+  }
+  return{month,year,goal,emps,wishes,conArr};
+}
+
+// ═══════════════════════════════════════
+// GRID (Mon-aligned)
+// ═══════════════════════════════════════
+function getDays(y,m){return new Date(y,m,0).getDate();}
+function buildGrid(year,month){
+  var first=new Date(year,month-1,1);
+  var last=new Date(year,month,0);
+  var start=new Date(first); start.setDate(first.getDate()-((first.getDay()+6)%7));
+  var end=new Date(last); end.setDate(last.getDate()+(6-((last.getDay()+6)%7)));
+  var grid=[]; var cur=new Date(start);
+  while(cur<=end){
+    grid.push({date:new Date(cur),day:cur.getDate(),monthIdx:cur.getMonth(),
+      inMonth:cur.getMonth()===month-1,
+      wd:((cur.getDay()+6)%7)+1,isWE:cur.getDay()===0||cur.getDay()===6});
+    cur.setDate(cur.getDate()+1);
+  }
+  return grid;
+}
+
+function shuffle(arr,seed){
+  var a=[...arr]; var x=(seed+1)*134775813+1;
+  for(var i=a.length-1;i>0;i--){x=(x*1664525+1013904223)>>>0;var j=x%(i+1);[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+// ═══════════════════════════════════════
+// ALGORITHM
+// ═══════════════════════════════════════
+function generate(emps,wishes,conArr,year,month,seed,baseSched,baseLocked){
+  var n=emps.length;
+  var grid=buildGrid(year,month);
+  var days=grid.length;
+  var weeks=days/7;
+
+  var sched=baseSched?baseSched.map(r=>[...r]):Array.from({length:n},()=>Array(days).fill(''));
+  var locked=baseLocked?baseLocked.map(r=>[...r]):Array.from({length:n},()=>Array(days).fill(false));
+
+  var allIdx=[...Array(n).keys()];
+  var deps=shuffle(allIdx.filter(i=>emps[i].type==='dep'),seed);
+  var mgrs=shuffle(allIdx.filter(i=>emps[i].type==='mgr'),seed);
+
+  var nightC=Array(n).fill(0);
+  var needOff=Array(n).fill(false);
+  var workW=Array.from({length:n},()=>Array(weeks+1).fill(0));
+  var offW=Array.from({length:n},()=>Array(weeks+1).fill(0));
+  var rdmW=Array.from({length:n},()=>Array(weeks+1).fill(false));
+  var weekOfIdx=d=>Math.floor(d/7);
+
+  var shiftType=function(s){
+    if(s===SH.INS_M)return'M';if(s===SH.INS_V)return'V';if(s===SH.INS_N)return'N';
+    if(s===SH.C_M)return'CM';if(s===SH.C_V)return'CV';
+    if(s&&s.startsWith('RDM'))return'R';return'O';
+  };
+  var shiftCnt=Array.from({length:n},()=>({M:0,V:0,N:0,CM:0,CV:0,R:0,O:0}));
+  var lastType=Array(n).fill('O');
+
+  // Sync from locked
+  for(var i=0;i<n;i++){
+    var nc=0;
+    for(var d=0;d<days;d++){
+      if(!locked[i][d])continue;
+      var s=sched[i][d];
+      if(isWork(s))workW[i][weekOfIdx(d)]++;
+      if(s===SH.OFF||s===SH.WISH)offW[i][weekOfIdx(d)]++;
+      if(s&&s.startsWith('RDM'))rdmW[i][weekOfIdx(d)]=true;
+      if(isNight(s)){nc++;if(nc>=3)needOff[i]=true;}else nc=0;
+      shiftCnt[i][shiftType(s)]++;
+    }
+    nightC[i]=0;
+  }
+
+  // Pre-assign wishes and vacations
+  for(var i2=0;i2<n;i2++){
+    var wData=wishes[i2]||{};
+    var wishDays=Array.isArray(wData)?wData:(wData.days||[]);
+    var vacDays2=Array.isArray(wData)?[]:(wData.vacDays||[]);
+    // Mark vacation days (locked)
+    for(var vi2=0;vi2<vacDays2.length;vi2++){
+      var gi=grid.findIndex(function(g){return g.inMonth&&g.day===vacDays2[vi2];});
+      if(gi>=0&&!locked[i2][gi]){
+        sched[i2][gi]=SH.VAC;
+        locked[i2][gi]=true; // vacation days are always locked
+      }
+    }
+    // Apply per-day constraints (daycons)
+    conArr[i2]=conArr[i2]||{};
+    conArr[i2].dayconMap={};
+    (cons[i2]&&cons[i2].daycons||[]).forEach(function(dc){
+      if(!dc.day) return;
+      var dcGi=grid.findIndex(function(g){return g.inMonth&&g.day===dc.day;});
+      if(dcGi<0) return;
+      if(dc.type==='no_work'){
+        if(!locked[i2][dcGi]){
+          sched[i2][dcGi]=SH.WISH;
+          locked[i2][dcGi]=true;
+          offW[i2][weekOfIdx(dcGi)]++;
+        }
+      } else {
+        conArr[i2].dayconMap[dcGi]=dc.type; // soft constraint for softScore
+      }
+    });
+    // Mark blockedDays as Недоступен (locked)
+    var blocked=(cons[i2]&&cons[i2].blockedDays)||[];
+    for(var bi=0;bi<blocked.length;bi++){
+      var bgi=grid.findIndex(function(g){return g.inMonth&&g.day===blocked[bi];});
+      if(bgi>=0&&!locked[i2][bgi]){
+        sched[i2][bgi]='Недоступен';
+        locked[i2][bgi]=true;
+        offW[i2][weekOfIdx(bgi)]++;
+      }
+    }
+    // Mark wish off-days as WISH (marked as staff-requested), locked so algorithm respects them
+    for(var wi2=0;wi2<wishDays.length;wi2++){
+      var wd2val=wishDays[wi2]; if(!wd2val) continue;
+      var gi2=grid.findIndex(function(g){return g.inMonth&&g.day===wd2val;});
+      if(gi2>=0&&!locked[i2][gi2]&&sched[i2][gi2]===''){
+        sched[i2][gi2]=SH.WISH;
+        locked[i2][gi2]=true; // locked so main loop won't overwrite
+        offW[i2][weekOfIdx(gi2)]++; // count as off for dep week balance
+      }
+    }
+  }
+
+  function assign(i,d,sh){
+    sched[i][d]=sh;
+    var w=weekOfIdx(d);
+    if(isWork(sh))workW[i][w]++;
+    if(sh===SH.OFF||sh===SH.WISH)offW[i][w]++;
+    if(isNight(sh)){nightC[i]++;if(nightC[i]>=3)needOff[i]=true;}
+    else if(sh===SH.OFF||sh===SH.VAC||sh===SH.SICK||sh===SH.WISH){nightC[i]=0;needOff[i]=false;}
+    else nightC[i]=0;
+    var t=shiftType(sh); shiftCnt[i][t]++; lastType[i]=t;
+  }
+
+  function covered(d,sh){
+    if(sched.some(r=>r[d]===sh))return true;
+    if(ST.mgmtSched&&ST.mgmtSched[0]&&ST.mgmtSched[0][d]===sh)return true;
+    return false;
+  }
+
+  function softScore(i,d,sh){
+    var sc=0; var w=weekOfIdx(d);
+    // Only penalise based on inMonth work this week
+    var wS4=w*7, wE4=Math.min(wS4+7,grid.length);
+    var imWork=0; for(var dk2=wS4;dk2<wE4;dk2++){if(grid[dk2]&&grid[dk2].inMonth&&isWork(sched[i][dk2]))imWork++;}
+    sc+=imWork*8;
+    if(needOff[i])sc+=40;
+    var c=conArr[i]||{};
+    if(c.noNight&&isNight(sh))sc+=500;
+    if(c.noEvening&&isEve(sh))sc+=500;
+    if(c.onlyMorning&&!isMorn(sh)&&!isNight(sh))sc+=300;
+    if(c.onlyNight&&!isNight(sh))sc+=800;
+    if(c.onlyEvening&&!isEve(sh))sc+=800;
+    if(c.noWeekend&&grid[d].isWE)sc+=300;
+    if(c.dayconMap&&c.dayconMap[d]){
+      var dct=c.dayconMap[d];
+      if(dct==='only_m'&&!isMorn(sh))sc+=1000;
+      if(dct==='only_v'&&!isEve(sh))sc+=1000;
+      if(dct==='only_n'&&!isNight(sh))sc+=1000;
+    }
+    var prev=d>0?sched[i][d-1]:'';
+    if(isEve(prev)&&isMorn(sh))sc+=200;
+    var prev2=d>1?sched[i][d-2]:'';
+    if(emps[i].type==='mgr'&&isWork(sh)&&prev===SH.OFF&&isWork(prev2))sc+=100;
+    if(emps[i].type==='dep'&&(sh===SH.C_M||sh===SH.C_V))sc+=30;
+    // Deputies: max 2 offs per week total — count out-of-month days as implicit offs
+    if(emps[i].type==='dep'&&(sh===SH.OFF||sh===SH.WISH)){
+      var wS5=w*7, wE5=Math.min(wS5+7,grid.length);
+      var outOfM=0;
+      for(var dk5=wS5;dk5<wE5;dk5++){if(grid[dk5]&&!grid[dk5].inMonth)outOfM++;}
+      var totalOffsSoFar=offW[i][w]+outOfM;
+      if(totalOffsSoFar>=2)sc+=1500;
+    }
+    var t=shiftType(sh); var cnt=shiftCnt[i];
+    var totalWork=cnt.M+cnt.V+cnt.N+cnt.CM+cnt.CV+cnt.R;
+    if(lastType[i]===t&&t!=='O')sc+=60;
+    if(totalWork>0)sc+=Math.round(cnt[t]/totalWork*120);
+    var recent3=[];
+    for(var k=Math.max(0,d-3);k<d;k++)recent3.push(shiftType(sched[i][k]));
+    if(!recent3.includes(t))sc-=25;
+    if(emps[i].type==='dep'){
+      if(sh===SH.INS_M&&cnt.M>cnt.V+1)sc+=35;
+      if(sh===SH.INS_V&&cnt.V>cnt.M+1)sc+=35;
+    }
+    var prevS=d>0?sched[i][d-1]:'';
+    if(isNight(prevS)&&sh!==SH.INS_N)sc+=2000;
+    return sc;
+  }
+
+  function pickFrom(pool,d,sh,mandatory){
+    var cands=pool.filter(function(i){
+      if(locked[i][d])return false; // covers WISH, Недоступен, and manual locks
+      if(sched[i][d]==='Недоступен')return false;
+      if(sched[i][d]===SH.VAC||sched[i][d]===SH.SICK||sched[i][d]===SH.WISH)return false;
+      if(!mandatory&&sched[i][d]!=='')return false;
+      if(mandatory&&sched[i][d]!==''&&sched[i][d]!==SH.OFF)return false;
+      var prev=d>0?sched[i][d-1]:'';
+      if(isNight(prev)&&sh!==SH.INS_N)return false;
+      // Hard block: deputies max 5 work days per week, max 2 offs total (incl. out-of-month days)
+      if(emps[i].type==='dep'&&grid[d].inMonth){
+        var w=weekOfIdx(d);
+        var wS3=w*7, wE3=Math.min(wS3+7,grid.length);
+        var inMonthWork=0, outOfMonth=0, totalOff=0;
+        for(var dk=wS3;dk<wE3;dk++){
+          if(!grid[dk]) continue;
+          if(!grid[dk].inMonth){ outOfMonth++; continue; }
+          if(isWork(sched[i][dk])) inMonthWork++;
+          else if(sched[i][dk]===SH.OFF||sched[i][dk]===SH.WISH||sched[i][dk]==='Недоступен'||
+                  sched[i][dk]===SH.VAC||sched[i][dk]===SH.SICK) totalOff++;
+        }
+        // Block if already at 5 work days
+        if(isWork(sh)&&inMonthWork>=5) return false;
+        // Block work if adding it would mean total offs < 2
+        // i.e. if we're giving a work day when there's no room for 2 offs
+        var offsAvailableAfter=(7-outOfMonth-inMonthWork-1); // days left after this work day
+        if(isWork(sh)&&(outOfMonth+totalOff)<2&&offsAvailableAfter<(2-outOfMonth-totalOff)) return false;
+        // Block OFF if total offs (including out-of-month) already >= 2
+        if(!isWork(sh)&&sh===SH.OFF&&(outOfMonth+totalOff)>=2) sc+=1500; // penalise in softScore instead
+      }
+      return true;
+    });
+    if(!cands.length)return null;
+    cands.sort((a,b)=>softScore(a,d,sh)-softScore(b,d,sh));
+    return cands[0];
+  }
+
+  function fill(pool,d,sh){
+    if(covered(d,sh))return;
+    var p=pickFrom(pool,d,sh,true);
+    if(p==null)p=pickFrom(allIdx,d,sh,true);
+    if(p!=null)assign(p,d,sh);
+  }
+  function fillC(d,sh){
+    if(covered(d,sh))return;
+    var p=pickFrom(mgrs,d,sh,true);
+    if(p==null)p=pickFrom(deps,d,sh,true);
+    if(p==null)p=pickFrom(allIdx,d,sh,true);
+    if(p!=null)assign(p,d,sh);
+  }
+  function fillNight(d){
+    if(covered(d,SH.INS_N))return;
+    var mustContinue=mgrs.filter(function(i){
+      var prev=d>0?sched[i][d-1]:'';
+      return isNight(prev)&&nightC[i]>0&&nightC[i]<3&&!needOff[i]
+        &&(sched[i][d]===''||sched[i][d]===SH.OFF)&&!locked[i][d]
+        &&sched[i][d]!==SH.VAC&&sched[i][d]!==SH.SICK;
+    });
+    if(mustContinue.length>0){mustContinue.sort((a,b)=>nightC[b]-nightC[a]);assign(mustContinue[0],d,SH.INS_N);return;}
+    var streakMgrs=[...mgrs].filter(i=>nightC[i]===1&&!needOff[i]);
+    var p=pickFrom(streakMgrs,d,SH.INS_N,true);
+    if(p==null)p=pickFrom(mgrs.filter(i=>nightC[i]===0&&!needOff[i]),d,SH.INS_N,true);
+    if(p==null)p=pickFrom(mgrs,d,SH.INS_N,true);
+    if(p==null)p=pickFrom(allIdx,d,SH.INS_N,true);
+    if(p!=null)assign(p,d,SH.INS_N);
+  }
+
+  // Main loop
+  for(var d=0;d<days;d++){
+    var G=grid[d];
+    if(G.wd===1)for(var i3=0;i3<n;i3++)nightC[i3]=0;
+    for(var i4=0;i4<n;i4++){
+      if(sched[i4][d]===SH.VAC||sched[i4][d]===SH.SICK) continue;
+      if(needOff[i4]&&!locked[i4][d]&&sched[i4][d]===''){sched[i4][d]=SH.OFF;needOff[i4]=false;nightC[i4]=0;}
+    }
+    // RDM: one per day, per week per dep, not weekend
+    if(!G.isWE){
+      var w=weekOfIdx(d);
+      var rdmToday=deps.some(i=>sched[i][d]&&sched[i][d].startsWith('RDM'));
+      if(!rdmToday){
+        for(var ri=0;ri<deps.length;ri++){
+          var di=deps[ri];
+          if(rdmW[di][w]||locked[di][d])continue;
+          if((sched[di][d]===''||sched[di][d]===SH.OFF)&&workW[di][w]<5){
+            var prevR=d>0?sched[di][d-1]:'';
+            if(!isEve(prevR)&&!isNight(prevR)){assign(di,d,SH.RDM);rdmW[di][w]=true;break;}
+          }
+        }
+      }
+    }
+    fill(deps,d,SH.INS_M);
+    fill(deps,d,SH.INS_V);
+    // If ins 7:45 or ins 15:45 still not covered → assign to director (mgmtSched[0])
+    if(!covered(d,SH.INS_M)&&ST.mgmtSched&&ST.mgmtSched[0]&&!ST.mgmtSched[0][d]){
+      ST.mgmtSched[0][d]=SH.INS_M;
+    }
+    if(!covered(d,SH.INS_V)&&ST.mgmtSched&&ST.mgmtSched[0]&&!ST.mgmtSched[0][d]){
+      ST.mgmtSched[0][d]=SH.INS_V;
+    }
+    fillNight(d);
+    fillC(d,SH.C_M);
+    fillC(d,SH.C_V);
+    for(var ie=0;ie<n;ie++){
+      if(sched[ie][d]===SH.VAC||sched[ie][d]===SH.SICK||sched[ie][d]===SH.WISH) continue;
+      if(!locked[ie][d]&&sched[ie][d]===''){sched[ie][d]=SH.OFF;lastType[ie]='O';}
+    }
+  }
+
+  // Post: deputies — STRICTLY 5 work + max 2 off per week (across ALL 7 days incl. non-month)
+  for(var pi=0;pi<n;pi++){
+    if(emps[pi].type!=='dep') continue;
+    for(var pw=0;pw<weeks;pw++){
+      var pwS=pw*7, pwE=Math.min(pwS+7,days);
+
+      // Count ALL 7 days: out-of-month days count as implicit offs
+      var lockedWork=[],autoWork=[],autoOff=[],lockedOff=[],pvac=[];
+      var outOfMonthCount=0;
+      for(var pd=pwS;pd<pwE;pd++){
+        var ps=sched[pi][pd], plk=locked[pi]&&locked[pi][pd];
+        if(!grid[pd].inMonth){
+          outOfMonthCount++; // these are always "off" for this month's purposes
+          continue;
+        }
+        if(ps===SH.VAC||ps===SH.SICK){ pvac.push(pd); }
+        else if(ps===SH.WISH||ps==='Недоступен'){ lockedOff.push(pd); }
+        else if(ps===SH.OFF){ plk ? lockedOff.push(pd) : autoOff.push(pd); }
+        else if(isWork(ps)){ plk ? lockedWork.push(pd) : autoWork.push(pd); }
+      }
+
+      var inMonthDays=lockedWork.length+autoWork.length+lockedOff.length+autoOff.length+pvac.length;
+      if(inMonthDays===0) continue;
+
+      // Total offs across ALL 7 days = out-of-month + in-month offs + vac
+      var totalOffsAll = outOfMonthCount + lockedOff.length + autoOff.length + pvac.length;
+
+      // Target: across the full 7-day week, exactly 2 offs total
+      // So in-month offs allowed = max(0, 2 - outOfMonthCount - lockedOff - pvac)
+      var autoOffTarget = Math.max(0, 2 - outOfMonthCount - lockedOff.length - pvac.length);
+      var autoWorkTarget = Math.max(0, inMonthDays - lockedOff.length - pvac.length - autoOffTarget - lockedWork.length);
+      // Cap: total work (locked + auto) cannot exceed 5
+      var maxAutoWork = Math.max(0, 5 - lockedWork.length - pvac.length);
+      autoWorkTarget = Math.min(autoWorkTarget, maxAutoWork);
+
+      var curAutoWork = autoWork.length;
+      var curAutoOff  = autoOff.length;
+
+      if(curAutoWork > autoWorkTarget){
+        // Too many work days → convert excess to OFF
+        var toOff=[
+          ...autoWork.filter(function(d2){return sched[pi][d2]===SH.C_M||sched[pi][d2]===SH.C_V;}),
+          ...autoWork.filter(function(d2){return sched[pi][d2]&&sched[pi][d2].startsWith('RDM');}),
+          ...autoWork.filter(function(d2){return sched[pi][d2]===SH.INS_M||sched[pi][d2]===SH.INS_V;}),
+        ];
+        var excess2=curAutoWork-autoWorkTarget;
+        for(var ti=0;ti<toOff.length&&excess2>0;ti++){
+          sched[pi][toOff[ti]]=SH.OFF; excess2--;
+        }
+      } else if(curAutoWork < autoWorkTarget){
+        // Too few work days → convert auto-offs back to C-shifts
+        var need2=autoWorkTarget-curAutoWork;
+        for(var oi=0;oi<autoOff.length&&need2>0;oi++){
+          var od=autoOff[oi];
+          if(sched[pi][od]===SH.WISH||sched[pi][od]==='Недоступен') continue;
+          var wt2=sched.filter(function(r,j){return j!==pi&&isWork(r[od]);}).length;
+          if(wt2>=5) continue;
+          var cMT=sched.some(function(r,j){return j!==pi&&r[od]===SH.C_M;});
+          var cVT=sched.some(function(r,j){return j!==pi&&r[od]===SH.C_V;});
+          sched[pi][od]=cMT?(cVT?SH.C_M:SH.C_V):SH.C_M;
+          need2--;
+        }
+      }
+    }
+  }
+
+  // Post: min 2 off per week for managers
+  for(var mi=0;mi<n;mi++){
+    if(emps[mi].type!=='mgr')continue;
+    for(var mw=0;mw<weeks;mw++){
+      var mwS=mw*7, mwE=Math.min(mwS+7,days);
+      var moff=0; var mcSlots=[];
+      for(var md=mwS;md<mwE;md++){
+        var ms=sched[mi][md], mlk=locked[mi]&&locked[mi][md];
+        if(!isWork(ms))moff++;
+        else if(!mlk&&(ms===SH.C_M||ms===SH.C_V))mcSlots.push(md);
+      }
+      var mneed=Math.max(0,2-moff);
+      for(var mk=0;mk<mneed&&mk<mcSlots.length;mk++)sched[mi][mcSlots[mk]]=SH.OFF;
+    }
+  }
+
+  // Track uncovered mandatory positions for highlighting
+  var uncovered=[];
+  for(var uc=0;uc<days;uc++){
+    if(!grid[uc].inMonth) continue;
+    [SH.INS_M,SH.INS_V,SH.INS_N,SH.C_M,SH.C_V].forEach(function(sh){
+      var coveredNow=sched.some(function(r){return r[uc]===sh;})
+        ||(ST.mgmtSched&&ST.mgmtSched[0]&&ST.mgmtSched[0][uc]===sh);
+      if(!coveredNow) uncovered.push({d:uc,sh:sh});
+    });
+  }
+  sched._uncovered=uncovered;
+  sched._grid=grid;
+  return sched;
+}
+
+// ═══════════════════════════════════════
+// VALIDATION
+// ═══════════════════════════════════════
+function validate(emps,sched,days,year,month,locked,grid){
+  var n=emps.length;
+  var deps=sched.map((_,i)=>i).filter(i=>emps[i].type==='dep');
+  var mgrs=sched.map((_,i)=>i).filter(i=>emps[i].type==='mgr');
+  var R=[];
+  locked=locked||[];
+
+  // 1. Coverage
+  var miss=0; var missC=[];
+  for(var d=0;d<days;d++){
+    [SH.INS_M,SH.INS_V,SH.INS_N,SH.C_M,SH.C_V].forEach(function(sh){
+      if(!sched.some(r=>r[d]===sh)){miss++;missC.push({row:-1,col:d});}
+    });
+  }
+  R.push({ok:miss===0,t:'Все 5 позиций закрыты каждый день',d:miss?'Пропущено: '+miss:'',cells:missC});
+
+  // 2. Max 5 workers
+  var over=0; var overC=[];
+  for(var d2=0;d2<days;d2++){
+    var ws=sched.map((r,i)=>({i,s:r[d2]})).filter(({s})=>isWork(s)&&!(s&&s.startsWith('RDM')));
+    if(ws.length>5){over+=ws.length-5;ws.forEach(({i})=>overC.push({row:i,col:d2}));}
+  }
+  R.push({ok:over===0,t:'Не более 5 работающих в день (без RDM)',d:over?'Лишних смен: '+over:'',cells:overC});
+
+  // 3. Night only mgr
+  var wn=0; var wnC=[];
+  for(var d3=0;d3<days;d3++)deps.forEach(function(i){if(sched[i][d3]===SH.INS_N){wn++;wnC.push({row:i,col:d3});}});
+  R.push({ok:wn===0,t:'ins 23:45 — только Менеджер ПБО',d:wn?'Нарушений: '+wn:'',cells:wnC});
+
+  // 4. Lead only dep
+  var wl=0; var wlC=[];
+  for(var d4=0;d4<days;d4++)mgrs.forEach(function(i){if(sched[i][d4]===SH.INS_M||sched[i][d4]===SH.INS_V){wl++;wlC.push({row:i,col:d4});}});
+  R.push({ok:wl===0,t:'ins 7:45 / ins 15:45 — только Зам.',d:wl?'Нарушений: '+wl:'',cells:wlC});
+
+  // 5. Eve→morn
+  var em=0; var emC=[];
+  for(var i5=0;i5<n;i5++)for(var d5=0;d5<days-1;d5++)if(isEve(sched[i5][d5])&&isMorn(sched[i5][d5+1])){em++;emC.push({row:i5,col:d5});emC.push({row:i5,col:d5+1});}
+  R.push({ok:em===0,t:'После вечерней — нет утренней (13ч)',d:em?'Нарушений: '+em:'',cells:emC});
+
+  // 6. Night→non-night
+  var an=0; var anC=[];
+  for(var i6=0;i6<n;i6++)for(var d6=0;d6<days-1;d6++){if(isNight(sched[i6][d6])&&isWork(sched[i6][d6+1])&&!isNight(sched[i6][d6+1])){an++;anC.push({row:i6,col:d6});anC.push({row:i6,col:d6+1});}}
+  R.push({ok:an===0,t:'После ночной — только ночная или выходной',d:an?'Нарушений: '+an:'',cells:anC});
+
+  // 7. Night streak ≤3
+  var ns=0; var nsC=[];
+  for(var i7=0;i7<n;i7++){var s7=0;for(var d7=0;d7<days;d7++){if(isNight(sched[i7][d7])){s7++;if(s7>3){ns++;nsC.push({row:i7,col:d7});}}else s7=0;}}
+  R.push({ok:ns===0,t:'Не более 3 ночных подряд',d:ns?'Превышений: '+ns:'',cells:nsC});
+
+  // 8. Min 1 mgr per day
+  var noMgr=0; var noMgrC=[];
+  for(var d8=0;d8<days;d8++){if(!mgrs.some(i=>isWork(sched[i][d8]))){noMgr++;noMgrC.push({row:-1,col:d8});}}
+  R.push({ok:noMgr===0,t:'Каждый день работает минимум 1 менеджер',d:noMgr?'Дней: '+noMgr:'',cells:noMgrC});
+
+  // 9. Dep ins ratio
+  var depIns=0,depTot=0; var insC=[];
+  for(var i9=0;i9<n;i9++){
+    if(emps[i9].type!=='dep')continue;
+    for(var d9=0;d9<days;d9++){var s9=sched[i9][d9];if(isWork(s9)){depTot++;if(s9===SH.INS_M||s9===SH.INS_V||(s9&&s9.startsWith('RDM')))depIns++;else insC.push({row:i9,col:d9});}}
+  }
+  var ir=depTot>0?Math.round(depIns/depTot*100):100;
+  R.push({ok:ir>=70,t:'Замы: ins-смены ('+(ir)+'%)',d:ir<70?'Доля: '+ir+'% (цель ≥70%)':ir+'% ✓',cells:insC});
+
+  var weeks=Math.ceil(days/7);
+
+  // 10. Dep ≤5 work/week
+  var dw=0; var dwC=[];
+  var vgrid=grid||[];
+  deps.forEach(function(i){
+    for(var w=0;w<weeks;w++){
+      var wS=w*7,wE=Math.min(wS+7,days),work=0,vac2=0,lkOff=0,inM=0;
+      for(var d=wS;d<wE;d++){
+        if(vgrid[d]&&!vgrid[d].inMonth) continue;
+        inM++;
+        var s=sched[i][d], lk=locked[i]&&locked[i][d];
+        if(s===SH.VAC||s===SH.SICK) vac2++;
+        else if(s===SH.OFF&&lk) lkOff++;
+        else if(isWork(s)){work++;if(work>5)dwC.push({row:i,col:d});}
+      }
+      if(inM===0) continue;
+      var expectedWork=Math.min(5,Math.max(0,inM-lkOff-vac2));
+      if(work!==expectedWork)dw++;
+    }
+  });
+  R.push({ok:dw===0,t:'Замы: строго 5 смен в неделю',d:dw?'Недель не в норме: '+dw:'',cells:dwC});
+
+  // 11. Dep strictly 2 offs/week
+  var doe=0; var doeC=[];
+  deps.forEach(function(i){
+    for(var w=0;w<weeks;w++){
+      var wS=w*7,wE=Math.min(wS+7,days),autoOff=0,lockedOff=0,vacCnt=0,inM2=0;
+      for(var d=wS;d<wE;d++){
+        if(vgrid[d]&&!vgrid[d].inMonth) continue;
+        inM2++;
+        var s=sched[i][d],lk=locked[i]&&locked[i][d];
+        if(s===SH.VAC||s===SH.SICK) vacCnt++;
+        else if(s===SH.OFF||s===SH.WISH){lk?lockedOff++:autoOff++;} // WISH = staff-requested off
+      }
+      if(inM2===0) continue;
+      var target=Math.max(0,2-lockedOff-vacCnt);
+      if(autoOff!==target){doe++;for(var d2=wS;d2<wE;d2++){if(vgrid[d2]&&vgrid[d2].inMonth)doeC.push({row:i,col:d2});}}
+    }
+  });
+  R.push({ok:doe===0,t:'Замы: строго 2 выходных в неделю',d:doe?'Недель не в норме: '+doe:'',cells:doeC});
+
+  // 12. Mgr min 2 off/week
+  var mo2=0; var mo2C=[];
+  mgrs.forEach(function(i){for(var w=0;w<weeks;w++){var wS=w*7,wE=wS+7,off=0;for(var d=wS;d<wE&&d<days;d++){if(!isWork(sched[i][d]))off++;}if(off<2){mo2++;for(var d2=wS;d2<wE&&d2<days;d2++)mo2C.push({row:i,col:d2});}}});
+  R.push({ok:mo2===0,t:'Менеджеры: минимум 2 выходных в неделю',d:mo2?'Нарушений: '+mo2:'',cells:mo2C});
+
+  // 13. Max 5 work/week (anyone)
+  var wv=0; var wvC=[];
+  for(var i10=0;i10<n;i10++){for(var w=0;w<weeks;w++){var wS=w*7,wE=wS+7,work=0;for(var d=wS;d<wE&&d<days;d++){if(isWork(sched[i10][d])){work++;if(work>5)wvC.push({row:i10,col:d});}}if(work>5)wv++;}}
+  R.push({ok:wv===0,t:'Не более 5 смен в неделю',d:wv?'Нарушений: '+wv:'',cells:wvC});
+
+  // 14. RDM weekly + max 1/day
+  var rm=0,rd=0; var rmC=[],rdC=[];
+  deps.forEach(function(i){for(var w=0;w<weeks;w++){var wS=w*7,wE=wS+7;if(!sched[i].slice(wS,wE).some(s=>s&&s.startsWith('RDM'))){rm++;for(var d=wS;d<wE&&d<days;d++)rmC.push({row:i,col:d});}}});
+  for(var d11=0;d11<days;d11++){var rc=sched.filter((_,i)=>sched[i][d11]&&sched[i][d11].startsWith('RDM')).length;if(rc>1){rd++;sched.forEach((_,i)=>{if(sched[i][d11]&&sched[i][d11].startsWith('RDM'))rdC.push({row:i,col:d11});});}}
+  R.push({ok:rm===0,t:'RDM каждую неделю у каждого зама',d:rm?'Пропущено: '+rm:'',cells:rmC});
+  R.push({ok:rd===0,t:'Не более 1 RDM в день',d:rd?'Нарушений: '+rd:'',cells:rdC});
+
+  return R;
+}
+
+// Count mandatory coverage misses per day (for schedule header)
+function countMiss(sched,days){
+  var miss=0;
+  for(var d=0;d<days;d++)[SH.INS_M,SH.INS_V,SH.INS_N,SH.C_M,SH.C_V].forEach(function(sh){if(!sched.some(r=>r[d]===sh))miss++;});
+  return miss;
+}
+
+// ═══════════════════════════════════════
+// HOURS
+// ═══════════════════════════════════════
+function calcHours(sched,days,grid){
+  return sched.map(function(row){
+    var weeks=days/7;
+    var weekly=Array(weeks).fill(0);
+    var monthly=0;
+    for(var d=0;d<days;d++){
+      var h=getHrs(row[d]);
+      monthly+=h;
+      weekly[Math.floor(d/7)]+=h;
+    }
+    return{monthly,weekly};
+  });
+}
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function saveHistory(){
+  var key=(ST.year||'')+'-'+(ST.month||'');
+  if(!ST.days)return;
+  schedHistory[key]={sched:ST.sched.map(r=>[...r]),mgmtSched:ST.mgmtSched.map(r=>[...r]),
+    locked:ST.locked.map(r=>[...r]),emps:[...ST.emps],days:ST.days,year:ST.year,month:ST.month,grid:ST.grid};
+  renderMonthTabs();
+}
+
+function renderMonthTabs(){
+  var container=document.getElementById('month-tabs');
+  container.innerHTML='';
+  Object.keys(schedHistory).sort().forEach(function(k){
+    var isActive=k===(ST.year+'-'+ST.month);
+    var btn=document.createElement('button');
+    btn.className='mtab'+(isActive?' active':'');
+    var snap=schedHistory[k];
+    btn.textContent=MRU[(snap.month||1)-1].slice(0,3)+' '+snap.year;
+    btn.dataset.key=k;
+    btn.addEventListener('click',function(){loadHistory(this.dataset.key);});
+    container.appendChild(btn);
+  });
+}
+
+function loadHistory(key){
+  var h=schedHistory[key]; if(!h)return;
+  ST={sched:h.sched.map(r=>[...r]),mgmtSched:h.mgmtSched.map(r=>[...r]),
+    locked:h.locked.map(r=>[...r]),emps:[...h.emps],days:h.days,year:h.year,month:h.month,grid:h.grid||buildGrid(h.year,h.month)};
+  ST.sched._grid=ST.grid;
+  render(); go('sched'); renderMonthTabs();
+}
+
+function render(){
+  var sched=ST.sched,mgmtSched=ST.mgmtSched,locked=ST.locked,emps=ST.emps,days=ST.days,year=ST.year,month=ST.month;
+  var grid=ST.grid||buildGrid(year,month);
+  if(!days)return;
+
+  var DOW_RU=DOW;
+  document.getElementById('sp-label').textContent='— '+MRU[month-1]+' '+year;
+  document.getElementById('lock-note').style.display='block';
+  var totalLocked=0;
+  (ST.locked||[]).forEach(function(row){(row||[]).forEach(function(v){if(v)totalLocked++;});});
+  var bannerEl=document.getElementById('manual-banner');
+  if(bannerEl){
+    if(totalLocked>0){
+      bannerEl.textContent='🔒 Заблокировано ячеек: '+totalLocked+' — сохранятся при пересчёте. Двойной клик снимает блокировку.';
+      bannerEl.style.display='block';
+    } else { bannerEl.style.display='none'; }
+  }
+
+  // Build table
+  var h='<table class="sched-t"><thead><tr>';
+  h+='<th class="nc" style="position:sticky;left:0;z-index:2;background:var(--hdr)">Сотрудник</th>';
+  h+='<th class="pc" style="position:sticky;left:120px;z-index:2;background:var(--hdr)">Должность / Отдел</th>';
+  for(var d=0;d<days;d++){
+    var G=grid[d]; var dim=!G.inMonth?'opacity:.4':'';
+    var we=G.isWE?' we':'';
+    h+='<th class="'+we+'" style="'+dim+'">'+G.day+'<br>'+DOW_RU[G.date.getDay()]+'</th>';
+  }
+  h+='</tr></thead><tbody>';
+
+  // Mgmt rows
+  var mgmtNames=MGMT.map(function(p,i){return document.getElementById('mn-'+i)?document.getElementById('mn-'+i).value:p.name;});
+  mgmtSched.forEach(function(row,i){
+    var p=MGMT[i];
+    h+='<tr class="r-'+p.type+'"><td class="nc">'+mgmtNames[i]+'</td><td class="pc">'+p.pos+'</td>';
+    for(var d=0;d<days;d++){
+      var s=row[d]||''; var dim=!grid[d].inMonth?'opacity:.4':'';
+      h+='<td data-col="'+d+'" class="'+getCss(s)+' ec" style="'+dim+'" onclick="openCell(\'m\','+i+','+d+')">'+s+'</td>';
+    }
+    h+='</tr>';
+  });
+
+  // Separator
+  h+='<tr><td class="hc" colspan="2">&#9660; Расписание</td>';
+  for(var d=0;d<days;d++)h+='<td class="hc" style="font-size:9px;color:var(--muted)"></td>';
+  h+='</tr>';
+
+  // Staff rows
+  emps.forEach(function(e,i){
+    var deptBadge=e.dept&&e.dept!=='—'?'<span class="dept-badge">'+e.dept+'</span>':'';
+    h+='<tr class="r-'+e.type+'"><td class="nc">'+e.name+'</td><td class="pc">'+e.pos+deptBadge+'</td>';
+    for(var d=0;d<days;d++){
+      var s=sched[i][d]||''; var lk=locked[i]&&locked[i][d];
+      var dim=!grid[d].inMonth?'opacity:.35':'';
+      h+='<td id="sc-'+i+'-'+d+'" data-col="'+d+'" class="'+getCss(s)+' ec'+(lk?' cman':'')+'" style="'+dim+'" onclick="openCell(\'s\','+i+','+d+')" ondblclick="toggleLock('+i+','+d+')">'+s+'</td>';
+    }
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+
+  document.getElementById('sched-wrap').innerHTML=h;
+  document.getElementById('sched-wrap').style.display='block';
+  document.getElementById('sched-empty').style.display='none';
+
+  // Highlight uncovered mandatory positions
+  var uncov=sched._uncovered||[];
+  var uncovDays=new Set(uncov.map(function(u){return u.d;}));
+  uncovDays.forEach(function(d){
+    document.querySelectorAll('[data-col="'+d+'"]').forEach(function(el){
+      el.classList.add('uncov-col');
+      el.title='⚠ Позиция не закрыта!';
+    });
+  });
+
+  // Validation
+  var checks=validate(emps,sched,days,year,month,locked,grid);
+  _lastChecks=checks;
+  var vb='';
+  checks.forEach(function(c,ci){
+    var clickable=!c.ok&&c.cells&&c.cells.length>0;
+    var cls='vrow'+(clickable?' vrow-click':'');
+    var oc=clickable?' onclick="highlightViolation('+ci+')"':'';
+    var dot='<div class="vdot" style="background:'+(c.ok?'#16a34a':'#dc2626')+'"></div>';
+    var ttl='<span style="font-weight:600;color:'+(c.ok?'#166534':'#991b1b')+'">'+c.t+'</span>';
+    var det=c.d?'<span style="color:var(--muted);margin-left:4px">&#8212; '+c.d+'</span>':'';
+    var hint=clickable?'<span class="vhl-hint">&#128070; подсветить</span>':'';
+    vb+='<div class="'+cls+'"'+oc+'>'+dot+ttl+det+hint+'</div>';
+  });
+  document.getElementById('val-body').innerHTML=vb;
+  document.getElementById('val-card').style.display='block';
+
+  renderHours();
+}
+
+// ═══════════════════════════════════════
+// HIGHLIGHT VIOLATIONS
+// ═══════════════════════════════════════
+function highlightViolation(ci){
+  var c=_lastChecks[ci];
+  if(!c||!c.cells||!c.cells.length)return;
+  document.querySelectorAll('.v-hl').forEach(function(el){el.classList.remove('v-hl');});
+  go('sched');
+  clearTimeout(_hlTimer);
+  _hlTimer=setTimeout(function(){
+    var first=null;
+    c.cells.forEach(function(cell){
+      if(cell.row===-1){
+        document.querySelectorAll('[data-col="'+cell.col+'"]').forEach(function(el){
+          el.classList.add('v-hl'); if(!first)first=el;
+        });
+      } else {
+        var el=document.getElementById('sc-'+cell.row+'-'+cell.col);
+        if(el){el.classList.add('v-hl');if(!first)first=el;}
+      }
+    });
+    if(first)first.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
+    clearTimeout(_hlTimer);
+    _hlTimer=setTimeout(function(){
+      document.querySelectorAll('.v-hl').forEach(function(el){el.classList.remove('v-hl');});
+    },4000);
+  },150);
+}
+
+// ═══════════════════════════════════════
+// HOURS
+// ═══════════════════════════════════════
+function renderHours(){
+  var sched=ST.sched,emps=ST.emps,days=ST.days,year=ST.year,month=ST.month;
+  if(!days)return;
+  var goal=+document.getElementById('inp-goal').value||168;
+  var grid=ST.grid||buildGrid(year,month);
+  var hrs=calcHours(sched,days,grid);
+  document.getElementById('hrs-grid').innerHTML=emps.map(function(e,i){
+    var h=hrs[i]; var pct=goal>0?Math.round(h.monthly/goal*100):0;
+    var col=pct>=100?'#16a34a':pct>=75?'#f59e0b':'#dc2626';
+    var wrs=h.weekly.map(function(w,wi){return w>0?'<div class="hrow"><span class="hlbl">Нед. '+(wi+1)+'</span><span class="hval">'+w+'ч</span></div>':'';}).join('');
+    var deptStr=e.dept&&e.dept!=='—'?'<span class="dept-badge">'+e.dept+'</span>':'';
+    return '<div class="hcard"><div class="hname">'+e.name+'</div><div class="hpos">'+e.pos+deptStr+'</div>'
+      +wrs
+      +'<div class="hrow" style="border-top:1px solid var(--border);margin-top:5px;padding-top:5px"><span class="hlbl">Итого</span><span class="hval">'+h.monthly+' / '+goal+'ч</span></div>'
+      +'<div class="hpct" style="color:'+col+'">'+pct+'%</div>'
+      +'<div class="hbar-w"><div class="hbar" style="width:'+Math.min(pct,100)+'%;background:'+col+'"></div></div>'
+      +'</div>';
+  }).join('');
+  document.getElementById('hrs-grid').style.display='grid';
+  document.getElementById('hrs-empty').style.display='none';
+}
+
+// ═══════════════════════════════════════
+// LOCK / CELL EDIT
+// ═══════════════════════════════════════
+function toggleLock(i,d){
+  if(!ST.locked[i])ST.locked[i]=Array(ST.days).fill(false);
+  ST.locked[i][d]=!ST.locked[i][d];
+  saveHistory(); render();
+}
+
+function openCell(kind,idx,d){
+  var cur=kind==='m'?(ST.mgmtSched[idx]&&ST.mgmtSched[idx][d])||'':(ST.sched[idx]&&ST.sched[idx][d])||'';
+  cellCtx={kind,idx,d,cur};
+  var empType=kind==='s'?ST.emps[idx].type:'any';
+  var isRdm=cur.startsWith('RDM');
+  var rdmTime=isRdm&&cur.length>3?cur.slice(4):'';
+  document.getElementById('m-rdm-row').style.display=isRdm?'flex':'none';
+  document.getElementById('m-rdm-t').value=rdmTime;
+  var name=kind==='m'?MGMT[idx].name:ST.emps[idx].name;
+  document.getElementById('m-cell-title').textContent='Смена: '+name;
+  var available=empType==='dep'?[SH.INS_M,SH.INS_V,SH.C_M,SH.C_V,SH.RDM,SH.OFF]
+    :empType==='mgr'?[SH.INS_N,SH.C_M,SH.C_V,SH.K,SH.OFF]
+    :[SH.INS_M,SH.INS_V,SH.INS_N,SH.C_M,SH.C_V,SH.RDM,SH.K,SH.OFF];
+  var all=[...available,...customShifts.filter(s=>!available.includes(s))];
+  var grid2='';
+  all.forEach(function(s){
+    var bg=SH_BG[s]||'#f0fdf4'; var ft=SH_FT[s]||'#166534';
+    var act=s===cur||s===SH.RDM&&cur.startsWith('RDM');
+    grid2+='<button class="sb'+(act?' active':'')+'" style="background:'+bg+';color:'+ft+'" onclick="mpick(\''+s+'\',this)">'+s+'</button>';
+  });
+  document.getElementById('m-sgrid').innerHTML=grid2;
+  // Show lock state
+  var isLocked = cellCtx.kind==='s' && ST.locked[cellCtx.idx] && ST.locked[cellCtx.idx][cellCtx.d];
+  cellCtx.locked = !!isLocked;
+  updateLockUI();
+
+  // Show day-block row for staff cells
+  var blockRow = document.getElementById('m-block-row');
+  var blockCb  = document.getElementById('m-block-cb');
+  if(blockRow && cellCtx.kind==='s'){
+    var dayNum = ST.grid&&ST.grid[cellCtx.d] ? ST.grid[cellCtx.d].day : cellCtx.d+1;
+    var isBlk  = (cons[cellCtx.idx].blockedDays||[]).includes(dayNum);
+    blockRow.style.display='flex';
+    blockCb.checked = isBlk;
+    cellCtx.dayNum = dayNum;
+  } else if(blockRow){
+    blockRow.style.display='none';
+  }
+
+  document.getElementById('m-cell').style.display='flex';
+}
+
+function toggleDayBlock(checked){
+  var i=cellCtx.idx, dayNum=cellCtx.dayNum||0;
+  if(!cons[i].blockedDays) cons[i].blockedDays=[];
+  if(checked){
+    if(!cons[i].blockedDays.includes(dayNum)) cons[i].blockedDays.push(dayNum);
+    // Also set the cell to WISH (unavailable) and lock it
+    if(!ST.locked[i]) ST.locked[i]=Array(ST.days).fill(false);
+    ST.sched[i][cellCtx.d]='Недоступен';
+    ST.locked[i][cellCtx.d]=true;
+    cellCtx.cur='Недоступен'; cellCtx.locked=true; updateLockUI();
+  } else {
+    cons[i].blockedDays=cons[i].blockedDays.filter(function(d){return d!==dayNum;});
+    if(ST.sched[i][cellCtx.d]==='Недоступен'){
+      ST.sched[i][cellCtx.d]=SH.OFF;
+      ST.locked[i][cellCtx.d]=false;
+    }
+  }
+}
+
+function updateLockUI(){
+  var lk = cellCtx.locked;
+  var iconEl = document.getElementById('m-lock-icon');
+  var txtEl  = document.getElementById('m-lock-text');
+  var btnEl  = document.getElementById('m-lock-btn');
+  var rowEl  = document.getElementById('m-lock-row');
+  if(!iconEl) return;
+  // Only show for staff cells, not mgmt
+  rowEl.style.display = cellCtx.kind==='s' ? 'flex' : 'none';
+  if(lk){
+    iconEl.textContent='🔒';
+    txtEl.textContent='Заблокировано — сохранится при пересчёте';
+    txtEl.style.color='#92400e';
+    rowEl.style.background='#fef3c7';
+    btnEl.textContent='Разблокировать';
+    btnEl.style.background='#fef3c7';
+    btnEl.style.borderColor='#f59e0b';
+  } else {
+    iconEl.textContent='🔓';
+    txtEl.textContent='Не заблокировано — сбросится при пересчёте';
+    txtEl.style.color='var(--muted,#6b7280)';
+    rowEl.style.background='var(--color-background-secondary,#f8f9fa)';
+    btnEl.textContent='Заблокировать';
+    btnEl.style.background='#fff';
+    btnEl.style.borderColor='var(--border,#e2e6ea)';
+  }
+}
+
+function toggleCellLock(){
+  cellCtx.locked = !cellCtx.locked;
+  updateLockUI();
+}
+
+function mpick(val,btn){
+  cellCtx.cur=val;
+  document.querySelectorAll('#m-sgrid .sb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('m-rdm-row').style.display=val===SH.RDM?'flex':'none';
+  document.getElementById('m-custom').value='';
+}
+
+function addCustom(){
+  var v=document.getElementById('m-custom').value.trim(); if(!v)return;
+  if(!customShifts.includes(v))customShifts.push(v);
+  var btn=document.createElement('button');
+  btn.className='sb active'; btn.style.background='#fef9e7'; btn.style.color='#92400e';
+  btn.textContent=v; btn.onclick=function(){mpick(v,btn);};
+  document.querySelectorAll('#m-sgrid .sb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('m-sgrid').appendChild(btn);
+  cellCtx.cur=v;
+  document.getElementById('m-custom').value='';
+}
+
+function confirmCell(){
+  var val=cellCtx.cur;
+  if(val===SH.RDM){var t=document.getElementById('m-rdm-t').value.trim();if(t)val='RDM '+t;}
+  var existing=cellCtx.kind==='m'?(ST.mgmtSched[cellCtx.idx]&&ST.mgmtSched[cellCtx.idx][cellCtx.d])||'':(ST.sched[cellCtx.idx]&&ST.sched[cellCtx.idx][cellCtx.d])||'';
+  if(isBlocked(existing)&&!isBlocked(val)&&val!==''){
+    if(!confirm('Сейчас стоит "'+existing+'". Заменить на "'+(val||'—')+'"?')){closeCell();return;}
+  }
+  // Vacation/sick: offer to fill whole week
+  if((val===SH.VAC||val===SH.SICK)&&cellCtx.kind==='s'){
+    var d=cellCtx.d; var grid=ST.grid||[];
+    var wd=grid[d]?grid[d].wd:1;
+    var weekStart=d-(wd-1); var weekEnd=Math.min(weekStart+7,ST.days);
+    var fillWeek=confirm((val==='Отпуск'?'Отпуск':'Больничный')+': заполнить всю неделю?');
+    var ii=cellCtx.idx;
+    if(!ST.locked[ii])ST.locked[ii]=Array(ST.days).fill(false);
+    if(fillWeek){for(var dd=Math.max(0,weekStart);dd<weekEnd;dd++){ST.sched[ii][dd]=val;ST.locked[ii][dd]=true;}}
+    else{ST.sched[ii][d]=val;ST.locked[ii][d]=true;}
+    saveHistory(); closeCell(); render(); return;
+  }
+  if(cellCtx.kind==='m'){
+    if(!ST.mgmtSched[cellCtx.idx])ST.mgmtSched[cellCtx.idx]=Array(ST.days).fill('');
+    ST.mgmtSched[cellCtx.idx][cellCtx.d]=val;
+  } else {
+    ST.sched[cellCtx.idx][cellCtx.d]=val;
+    if(!ST.locked[cellCtx.idx])ST.locked[cellCtx.idx]=Array(ST.days).fill(false);
+    // Use the lock state the user chose in the modal
+    ST.locked[cellCtx.idx][cellCtx.d]=!!cellCtx.locked;
+  }
+  saveHistory(); closeCell(); render();
+}
+function closeCell(){document.getElementById('m-cell').style.display='none';}
+
+// ═══════════════════════════════════════
+// RECALC
+// ═══════════════════════════════════════
+function showRecalc(){
+  if(!ST.days){alert('Сначала сгенерируйте расписание');return;}
+  var inp;
+  try{inp=readInputs();}catch(e){alert(e.message);return;}
+  var locked=ST.locked;
+  var baseSched=ST.sched.map((row,i)=>row.map((v,d)=>locked[i]&&locked[i][d]?v:''));
+  rvList=[];
+  for(var s=0;s<3;s++){
+    var sc=generate(inp.emps,inp.wishes,inp.conArr,inp.year,inp.month,s+10,baseSched,locked);
+    rvList.push({sched:sc,label:'Вариант '+(s+1)+' (seed='+(s+10)+')',inp});
+  }
+  rvSel=0;
+  var h='';
+  rvList.forEach(function(v,i){
+    var miss=countMiss(v.sched,v.sched.length);
+    h+='<div class="rv-item'+(i===0?' sel':'')+'" onclick="selRv('+i+',this)">'+v.label+(miss>0?' <span style="color:#dc2626;font-size:11px">⚠ '+miss+' позиций не закрыто</span>':'')+'</div>';
+  });
+  document.getElementById('rv-list').innerHTML=h;
+  document.getElementById('m-recalc').classList.add('open');
+}
+
+function selRv(i,el){
+  rvSel=i;
+  document.querySelectorAll('.rv-item').forEach(function(b){b.classList.remove('sel');});
+  el.classList.add('sel');
+}
+
+function applyRecalc(){
+  var v=rvList[rvSel]; if(!v)return;
+  var inp=v.inp;
+  var days=v.sched.length;
+  var grid=v.sched._grid||buildGrid(inp.year,inp.month);
+  ST={sched:v.sched,mgmtSched:ST.mgmtSched.length?ST.mgmtSched:MGMT.map(()=>Array(days).fill('')),
+    locked:ST.locked,emps:inp.emps,days,year:inp.year,month:inp.month,grid};
+  ST.sched._grid=grid;
+  saveHistory(); closeRecalc(); render(); go('sched');
+}
+function closeRecalc(){document.getElementById('m-recalc').classList.remove('open');}
+
+// ═══════════════════════════════════════
+// GENERATE
+// ═══════════════════════════════════════
+function runGen(){
+  var btn=document.getElementById('btn-gen');
+  var aok=document.getElementById('a-ok');
+  var aerr=document.getElementById('a-err');
+  aok.classList.remove('show'); aerr.classList.remove('show');
+  btn.disabled=true; btn.textContent='⏳ Генерация...';
+  try{
+    var inp=readInputs();
+    var days=buildGrid(inp.year,inp.month).length;
+
+    // Preserve manually set cells (locked) and vacation/sick from existing schedule
+    var hasPrev = ST.days>0 && ST.year===inp.year && ST.month===inp.month;
+    var prevLocked = hasPrev ? ST.locked : inp.emps.map(()=>Array(days).fill(false));
+    var prevSched  = hasPrev ? ST.sched  : null;
+
+    // Also treat VAC/SICK cells as locked even if not explicitly double-clicked
+    if(hasPrev){
+      for(var i=0;i<inp.emps.length;i++){
+        if(!prevLocked[i]) prevLocked[i]=Array(days).fill(false);
+        for(var d=0;d<days;d++){
+          var s=prevSched&&prevSched[i]&&prevSched[i][d];
+          if(s===SH.VAC||s===SH.SICK) prevLocked[i][d]=true;
+        }
+      }
+    }
+
+    // baseSched: keep only locked cells, clear the rest for re-generation
+    var baseSched = prevSched
+      ? prevSched.map(function(row,i){ return row.map(function(v,d){ return prevLocked[i]&&prevLocked[i][d]?v:''; }); })
+      : null;
+
+    var sc=generate(inp.emps,inp.wishes,inp.conArr,inp.year,inp.month,0,baseSched,prevLocked);
+    var grid=sc._grid||buildGrid(inp.year,inp.month);
+
+    var mgmtSched = hasPrev ? ST.mgmtSched : MGMT.map(()=>Array(days).fill(''));
+
+    ST={sched:sc,mgmtSched:mgmtSched,locked:prevLocked,
+      emps:inp.emps,days,year:inp.year,month:inp.month,grid};
+    saveHistory(); render(); go('sched');
+
+    var note = hasPrev ? ' (ручные правки сохранены)' : '';
+    aok.innerHTML='✅ Расписание готово — '+MRU[inp.month-1]+' '+inp.year+note;
+    aok.classList.add('show');
+  }catch(e){
+    aerr.innerHTML='❌ '+e.message; aerr.classList.add('show');
+    console.error(e);
+  }
+  btn.disabled=false; btn.textContent='▶ Сгенерировать расписание';
+}
+
+// ═══════════════════════════════════════
+// EXCEL EXPORT
+// ═══════════════════════════════════════
+function doExport(){
+  if(!ST.days){alert('Сначала сгенерируйте расписание');return;}
+  var sched=ST.sched,mgmtSched=ST.mgmtSched,locked=ST.locked,emps=ST.emps,days=ST.days,year=ST.year,month=ST.month;
+  var grid=ST.grid||buildGrid(year,month);
+  var wb=XLSX.utils.book_new();
+  var aoa=[];
+  aoa.push(['РАСПИСАНИЕ ПБО — '+MRU[month-1].toUpperCase()+' '+year+' Г.']);
+  var hdr=['№','Сотрудник','Должность','Таб.','Отдел'];
+  grid.forEach(function(G){hdr.push(G.day+'\n'+DOW[G.date.getDay()]);});
+  aoa.push(hdr);
+  aoa.push(['','— Руководство —','','','']);
+  MGMT.forEach(function(p,i){
+    var row=[i+1,MGMT[i].name||p.name,p.pos,p.tab,'—'];
+    grid.forEach(function(_,d){row.push((mgmtSched[i]&&mgmtSched[i][d])||'');});
+    aoa.push(row);
+  });
+  aoa.push(['','— Сотрудники —','','','']);
+  emps.forEach(function(e,i){
+    var row=[i+1,e.name,e.pos,e.tab,e.dept||'—'];
+    grid.forEach(function(_,d){row.push(sched[i][d]||'');});
+    aoa.push(row);
+  });
+  var ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:days+4}}];
+  var cols=[{wch:4},{wch:22},{wch:20},{wch:7},{wch:12}];
+  grid.forEach(()=>cols.push({wch:7}));
+  ws['!cols']=cols;
+  XLSX.utils.book_append_sheet(wb,ws,'Расписание');
+  var fname='Расписание_ПБО_'+String(month).padStart(2,'0')+'_'+year+'.xlsx';
+  XLSX.writeFile(wb,fname);
+}
+
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
+(function(){
+  var PWD_HASH='bf038251c59b434b02c7279047808368f1ee0a6ee2ab98799158edb05b2eb4d6';
+  async function sha256(msg){
+    var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  var SESSION_KEY='pbo_auth_ok';
+  if(sessionStorage.getItem(SESSION_KEY)==='1'){
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    return;
+  }
+  var attempts=0,MAX=5,locked2=false,lockTimer=null;
+  window.authSubmit=async function(){
+    if(locked2)return;
+    var inp=document.getElementById('auth-inp');
+    var btn=document.getElementById('auth-btn');
+    var err=document.getElementById('auth-err');
+    var val=inp.value; if(!val){inp.focus();return;}
+    btn.disabled=true;
+    var hash=await sha256(val);
+    if(hash===PWD_HASH){
+      sessionStorage.setItem(SESSION_KEY,'1');
+      var scr=document.getElementById('auth-screen');
+      scr.style.transition='opacity .4s'; scr.style.opacity='0';
+      setTimeout(function(){scr.style.display='none';document.getElementById('main-app').style.display='block';},400);
+    } else {
+      attempts++;
+      inp.value=''; inp.classList.add('err');
+      var box=document.getElementById('auth-box');
+      box.classList.remove('do-shake'); void box.offsetWidth; box.classList.add('do-shake');
+      if(attempts>=MAX){
+        locked2=true; var secs=30;
+        err.textContent='Слишком много попыток. Подождите '+secs+' сек.';
+        inp.disabled=true; btn.disabled=true;
+        lockTimer=setInterval(function(){
+          secs--;
+          err.textContent='Слишком много попыток. Подождите '+secs+' сек.';
+          if(secs<=0){clearInterval(lockTimer);locked2=false;attempts=0;inp.disabled=false;btn.disabled=false;err.textContent='';inp.focus();}
+        },1000);
+      } else {
+        err.textContent='Неверный пароль';
+        var left=MAX-attempts;
+        if(left===1)err.textContent+=' — последняя попытка!';
+        else err.textContent+=' (осталось: '+left+')';
+        btn.disabled=false; inp.focus();
+      }
+    }
+  };
+  window.authToggle=function(){
+    var inp=document.getElementById('auth-inp');
+    inp.type=inp.type==='password'?'text':'password'; inp.focus();
+  };
+  setTimeout(function(){var el=document.getElementById('auth-inp');if(el)el.focus();},100);
+})();
+
+// ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// AI ANALYSIS
+// ═══════════════════════════════════════
+var _aiKey = '';
+
+function saveKey(){
+  var k = document.getElementById('ai-key-inp').value.trim();
+  if(!k){ alert('Введите API-ключ Gemini (начинается с AIza...)'); return; }
+  _aiKey = k;
+  document.getElementById('ai-key-inp').value = '••••••••' + k.slice(-4);
+  document.getElementById('ai-key-block').style.borderColor = 'var(--accent)';
+  document.getElementById('ai-key-block').style.background = 'var(--accent-soft)';
+  alert('✅ Groq API-ключ сохранён! Теперь можно запустить анализ.');
+}
+
+function scheduleToText(){
+  if(!ST.days) return null;
+  var lines = [];
+  var grid = ST.grid || buildGrid(ST.year, ST.month);
+  var MRU2 = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  lines.push('РАСПИСАНИЕ ПБО — ' + MRU2[ST.month-1] + ' ' + ST.year);
+  lines.push('');
+
+  // Header row
+  var inMonthDays = grid.filter(function(g){return g.inMonth;});
+  lines.push('Сотрудник | Должность | ' + inMonthDays.map(function(g){return g.day;}).join(' | '));
+
+  // Mgmt rows
+  MGMT.forEach(function(p,i){
+    var row = [p.name, p.pos];
+    inMonthDays.forEach(function(g,di){
+      var d = grid.indexOf(g);
+      row.push((ST.mgmtSched[i]&&ST.mgmtSched[i][d])||'—');
+    });
+    lines.push(row.join(' | '));
+  });
+
+  // Staff rows
+  ST.emps.forEach(function(e,i){
+    var row = [e.name, e.pos];
+    inMonthDays.forEach(function(g){
+      var d = grid.indexOf(g);
+      row.push(ST.sched[i][d]||'Вых');
+    });
+    lines.push(row.join(' | '));
+  });
+
+  // Hours summary
+  lines.push('');
+  lines.push('ЧАСЫ:');
+  var goal = +document.getElementById('inp-goal').value || 168;
+  ST.emps.forEach(function(e,i){
+    var total = 0;
+    inMonthDays.forEach(function(g){
+      var d = grid.indexOf(g);
+      total += getHrs(ST.sched[i][d]||'');
+    });
+    var pct = Math.round(total/goal*100);
+    lines.push(e.name + ' (' + e.pos + '): ' + total + 'ч / ' + goal + 'ч = ' + pct + '%');
+  });
+
+  return lines.join('\n');
+}
+
+var PROMPTS = {
+  full: function(sched){
+    return 'Ты эксперт по составлению расписания для предприятия быстрого обслуживания (ПБО).\n'
+      + 'Проанализируй следующее расписание и дай структурированный ответ по разделам:\n\n'
+      + '1. ОБЩАЯ ОЦЕНКА (коротко, одним абзацем)\n'
+      + '2. НАРУШЕНИЯ ПРАВИЛ (если есть: макс 5 смен/нед у замов, 2 выходных/нед, не более 3 ночных подряд, после вечерней нельзя утренняя)\n'
+      + '3. НАГРУЗКА (кто перегружен, кто недогружен)\n'
+      + '4. КОМФОРТ СОТРУДНИКОВ (удобство чередования смен)\n'
+      + '5. РЕКОМЕНДАЦИИ (конкретные предложения по улучшению)\n\n'
+      + 'Расписание:\n' + sched;
+  },
+  hours: function(sched){
+    return 'Проанализируй часы и нагрузку сотрудников в следующем расписании.\n'
+      + 'Отметь: кто превышает норму, у кого недовыработка, есть ли дисбаланс между сотрудниками одинаковых должностей.\n'
+      + 'Дай конкретные рекомендации по выравниванию нагрузки.\n\n'
+      + 'Расписание:\n' + sched;
+  },
+  comfort: function(sched){
+    return 'Оцени комфортность расписания для каждого сотрудника.\n'
+      + 'Обрати внимание на: равномерность распределения смен, наличие групп смен (неск. подряд одного типа), '
+      + 'переходы между сменами (вечер→утро особенно неудобен), выходные дни (равномерно ли распределены).\n'
+      + 'Для каждого сотрудника дай короткую оценку и балл комфорта от 1 до 10.\n\n'
+      + 'Расписание:\n' + sched;
+  },
+  violations: function(sched){
+    return 'Найди ВСЕ нарушения в следующем расписании ПБО.\n'
+      + 'Правила:\n'
+      + '- У замов директора: строго 5 рабочих дней и 2 выходных в каждую 7-дневную неделю\n'
+      + '- У менеджеров: минимум 2 выходных в неделю, не более 3 ночных (ins 23:45) подряд\n'
+      + '- После вечерней смены (ins 15:45 или C 15:45) нельзя утренняя на следующий день\n'
+      + '- После ночной (ins 23:45) — только ночная или выходной\n'
+      + '- В день строго 5 работающих: ins 7:45, ins 15:45, ins 23:45, C 7:45, C 15:45\n'
+      + '- RDM только у замов, не чаще 1 в день, каждую неделю\n'
+      + '- ins 23:45 только менеджеры ПБО\n'
+      + '- ins 7:45 и ins 15:45 только замы директора\n\n'
+      + 'Список всех нарушений с указанием сотрудника, даты и описания. Если нарушений нет — скажи об этом.\n\n'
+      + 'Расписание:\n' + sched;
+  },
+  custom: function(sched, q){
+    return q + '\n\nКонтекст — расписание ПБО:\n' + sched;
+  }
+};
+
+async function runAnalysis(type){
+  // Check key
+  if(!_aiKey){
+    var k = prompt('Введите Groq API-ключ (gsk_...)\nПолучить бесплатно: console.groq.com');
+    if(!k) return;
+    _aiKey = k.trim();
+  }
+
+  // Check schedule
+  if(!ST.days){
+    document.getElementById('ai-no-sched').style.display = 'block';
+    document.getElementById('ai-result').style.display = 'none';
+    return;
+  }
+  document.getElementById('ai-no-sched').style.display = 'none';
+
+  var sched = scheduleToText();
+  if(!sched) return;
+
+  var q = '';
+  if(type === 'custom'){
+    q = document.getElementById('ai-q').value.trim();
+    if(!q){ alert('Введите вопрос'); return; }
+  }
+
+  var prompt = PROMPTS[type] ? PROMPTS[type](sched, q) : q + '\n\n' + sched;
+
+  // Show loading
+  document.getElementById('ai-loading').style.display = 'block';
+  document.getElementById('ai-result').style.display = 'none';
+  document.querySelectorAll('#ai-actions button').forEach(function(b){b.disabled=true;});
+
+  try {
+    var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + _aiKey
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 2048,
+        temperature: 0.4,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if(!resp.ok){
+      var err = await resp.json().catch(function(){return{};});
+      var errMsg = (err.error && err.error.message) ? err.error.message : 'HTTP ' + resp.status;
+      throw new Error(errMsg);
+    }
+
+    var data = await resp.json();
+    var text = '';
+    try {
+      text = data.choices[0].message.content || '';
+    } catch(e) {
+      throw new Error('Не удалось прочитать ответ от Groq. Проверьте ключ.');
+    }
+
+    document.getElementById('ai-result-body').textContent = text;
+    document.getElementById('ai-result').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('ai-result-body').textContent = '❌ Ошибка: ' + e.message
+      + '\n\nПроверьте API-ключ и подключение к интернету.';
+    document.getElementById('ai-result').style.display = 'block';
+  } finally {
+    document.getElementById('ai-loading').style.display = 'none';
+    document.querySelectorAll('#ai-actions button').forEach(function(b){b.disabled=false;});
+  }
+}
+
+function clearResult(){
+  document.getElementById('ai-result').style.display = 'none';
+  document.getElementById('ai-result-body').textContent = '';
+}
+
+// ═══════════════════════════════════════
+// PER-DAY CONSTRAINTS
+// ═══════════════════════════════════════
+var DAY_CON_TYPES=[
+  {val:'no_work', label:'Не работает'},
+  {val:'only_m',  label:'Только утро'},
+  {val:'only_v',  label:'Только вечер'},
+  {val:'only_n',  label:'Только ночь'},
+];
+
+function addDayCon(i){
+  if(!cons[i].daycons) cons[i].daycons=[];
+  cons[i].daycons.push({day:'',type:'no_work'});
+  renderDayCons(i);
+}
+
+function removeDayConBtn(btn){
+  var i=+btn.dataset.ei, ci=+btn.dataset.ci;
+  if(!cons[i].daycons) return;
+  cons[i].daycons.splice(ci,1);
+  renderDayCons(i);
+}
+
+function dayConChange(el){
+  var i=+el.dataset.ei, ci=+el.dataset.ci;
+  if(!cons[i].daycons||!cons[i].daycons[ci]) return;
+  cons[i].daycons[ci].day=el.value?parseInt(el.value):null;
+}
+
+function dayConTypeChange(sel){
+  var i=+sel.dataset.ei, ci=+sel.dataset.ci;
+  if(!cons[i].daycons||!cons[i].daycons[ci]) return;
+  cons[i].daycons[ci].type=sel.value;
+}
+
+function renderDayCons(i){
+  var el=document.getElementById('daycons-'+i);
+  if(!el) return;
+  var h='';
+  (cons[i].daycons||[]).forEach(function(dc,ci){
+    var opts=DAY_CON_TYPES.map(function(t){
+      return '<option value="'+t.val+'"'+(dc.type===t.val?' selected':'')+'>'+t.label+'</option>';
+    }).join('');
+    h+='<div style="display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;padding:4px 8px">';
+    h+='<input type="number" min="1" max="31" value="'+(dc.day||'')+'" placeholder="день" '
+      +'data-ei="'+i+'" data-ci="'+ci+'" '
+      +'onchange="dayConChange(this)" '
+      +'style="width:40px;font-size:12px;padding:3px 4px;border:1px solid var(--border);border-radius:5px;text-align:center">';
+    h+='<select data-ei="'+i+'" data-ci="'+ci+'" onchange="dayConTypeChange(this)" style="font-size:11px;padding:3px 5px;border:1px solid var(--border);border-radius:5px;background:#fff">'+opts+'</select>';
+    h+='<button data-ei="'+i+'" data-ci="'+ci+'" onclick="removeDayConBtn(this)" style="border:none;background:none;cursor:pointer;color:#DC2626;font-size:15px;line-height:1;padding:0 2px">×</button>';
+    h+='</div>';
+  });
+  if(!cons[i].daycons||!cons[i].daycons.length){
+    h='<span style="font-size:11px;color:var(--muted2);font-style:italic">нет ограничений по дням</span>';
+  }
+  el.innerHTML=h;
+}
+
+function renderAllDayCons(){
+  STAFF.forEach(function(_,i){ renderDayCons(i); });
+}
+
+// ═══════════════════════════════════════
+// ANNUAL SCHEDULE
+// ═══════════════════════════════════════
+
+async function runYearGen(){
+  var year = +document.getElementById('year-inp').value;
+  if(!year||year<2024||year>2035){alert('Некорректный год');return;}
+  var btn = document.getElementById('year-btn');
+  var prog = document.getElementById('year-progress');
+  var bar = document.getElementById('year-progress-bar');
+  var lbl = document.getElementById('year-progress-label');
+  btn.disabled=true; prog.style.display='block';
+  var inp;
+  try{ inp=readInputs(); } catch(e){ alert(e.message); btn.disabled=false; prog.style.display='none'; return; }
+
+  if(!yearHistory[year]) yearHistory[year]={};
+
+  for(var m=1;m<=12;m++){
+    lbl.textContent='Генерация: '+MRU[m-1]+' '+year+'...';
+    bar.style.width=Math.round((m-1)/12*100)+'%';
+    var sc=generate(inp.emps,inp.wishes,inp.conArr,year,m,0,null,null);
+    var grid=sc._grid||buildGrid(year,m);
+    var days=sc.length;
+    yearHistory[year][m]={
+      sched:sc.map(function(r){return [...r];}),
+      mgmtSched:MGMT.map(function(){return Array(days).fill('');}),
+      locked:inp.emps.map(function(){return Array(days).fill(false);}),
+      emps:[...inp.emps],days:days,year:year,month:m,grid:grid
+    };
+    await new Promise(function(r){setTimeout(r,10);}); // allow UI update
+  }
+
+  bar.style.width='100%';
+  lbl.textContent='Готово! Нажмите на месяц чтобы открыть.';
+  // Register all months into schedHistory for month tabs
+  for(var ms=1;ms<=12;ms++){
+    var snap2=yearHistory[year]&&yearHistory[year][ms];
+    if(!snap2) continue;
+    var mKey2=year+'-'+ms;
+    var mg2=buildGrid(year,ms);
+    var md2=mg2.length;
+    schedHistory[mKey2]={
+      sched:snap2.sched.map(function(r){var rr=r.slice(0,md2);while(rr.length<md2)rr.push('');return rr;}),
+      mgmtSched:snap2.mgmtSched.map(function(r){var rr=r.slice(0,md2);while(rr.length<md2)rr.push('');return rr;}),
+      locked:snap2.locked.map(function(r){var rr=r.slice(0,md2);while(rr.length<md2)rr.push(false);return rr;}),
+      emps:[...(snap2.emps||[])],days:md2,year:year,month:ms,grid:mg2
+    };
+  }
+  renderMonthTabs();
+  renderYearGrid(year);
+  btn.disabled=false;
+}
+
+function renderYearGrid(year){
+  var data=yearHistory[year]; if(!data) return;
+  var grid=document.getElementById('year-grid');
+  var h='';
+  for(var m=1;m<=12;m++){
+    var snap=data[m];
+    if(!snap){h+='<div style="border:1px dashed var(--border);border-radius:10px;padding:16px;text-align:center;color:var(--muted2);font-size:12px">'+MRU[m-1]+'<br><small>не сгенерирован</small></div>';continue;}
+    var checks=validate(snap.emps,snap.sched,snap.days,year,m,snap.locked,snap.grid);
+    var okCount=checks.filter(function(c){return c.ok;}).length;
+    var total=checks.length;
+    var allOk=okCount===total;
+    var color=allOk?'var(--accent)':'var(--warning)';
+    h+='<div onclick="loadYearMonth('+year+','+m+')" class="year-card '+(allOk?'year-ok':'year-warn')+'">';
+    h+='<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">'+MRU[m-1]+' '+year+'</div>';
+    h+='<div style="font-size:11px;color:'+color+';font-weight:600">'+(allOk?'✅ Всё в порядке':'⚠ '+okCount+'/'+total+' правил')+'</div>';
+    h+='<div style="font-size:10px;color:var(--muted);margin-top:4px">'+snap.emps.length+' сотрудников · '+snap.days+' дней</div>';
+    h+='<div style="margin-top:8px;padding:5px 10px;background:rgba(255,255,255,.7);border-radius:6px;font-size:11px;font-weight:600;color:var(--text2);text-align:center">Открыть →</div>';
+    h+='</div>';
+  }
+  grid.innerHTML=h;
+}
+
+function loadYearMonth(year,month){
+  var snap=yearHistory[year]&&yearHistory[year][month];
+  if(!snap){alert('Данные не найдены');return;}
+  // Rebuild proper grid for the month (ensures all days are correct)
+  var grid=buildGrid(year,month);
+  var days=grid.length;
+  // Ensure sched/mgmtSched/locked match the grid size
+  var emps=snap.emps||[];
+  var sched=snap.sched.map(function(r){
+    var row=r.slice(0,days);
+    while(row.length<days)row.push('');
+    return row;
+  });
+  var mgmtSched=snap.mgmtSched.map(function(r){
+    var row=r.slice(0,days);
+    while(row.length<days)row.push('');
+    return row;
+  });
+  var locked=snap.locked.map(function(r){
+    var row=r.slice(0,days);
+    while(row.length<days)row.push(false);
+    return row;
+  });
+  ST={sched:sched,mgmtSched:mgmtSched,locked:locked,
+      emps:[...emps],days:days,year:year,month:month,grid:grid};
+  ST.sched._grid=grid;
+  // Save into schedHistory so month tabs show this month
+  saveHistory();
+  // Also register all other months of this year so tabs show them
+  if(yearHistory[year]){
+    Object.keys(yearHistory[year]).forEach(function(m){
+      var mNum=+m;
+      var mKey=year+'-'+mNum;
+      if(!schedHistory[mKey]){
+        var ms=yearHistory[year][mNum];
+        if(ms){
+          var mg=buildGrid(year,mNum);
+          var md=mg.length;
+          schedHistory[mKey]={
+            sched:ms.sched.map(function(r){var rr=r.slice(0,md);while(rr.length<md)rr.push('');return rr;}),
+            mgmtSched:ms.mgmtSched.map(function(r){var rr=r.slice(0,md);while(rr.length<md)rr.push('');return rr;}),
+            locked:ms.locked.map(function(r){var rr=r.slice(0,md);while(rr.length<md)rr.push(false);return rr;}),
+            emps:[...(ms.emps||[])],days:md,year:year,month:mNum,grid:mg
+          };
+        }
+      }
+    });
+  }
+  render(); go('sched'); renderMonthTabs();
+}
+
+// ═══════════════════════════════════════
+// AI ASSISTANT
+// ═══════════════════════════════════════
+var _assistKey='';
+var _suggestions=[];
+
+function assistSaveKey(){
+  var k=document.getElementById('assist-key-inp').value.trim();
+  if(!k){alert('Введите ключ');return;}
+  _assistKey=k; _aiKey=k;
+  document.getElementById('assist-key-inp').value='••••'+k.slice(-4);
+  document.getElementById('assist-key-block').style.borderColor='var(--accent)';
+  document.getElementById('assist-key-block').style.background='var(--accent-soft)';
+  alert('✅ Ключ сохранён');
+}
+
+function buildScheduleContext(){
+  if(!ST.days) return null;
+  var grid=ST.grid||buildGrid(ST.year,ST.month);
+  var inM=grid.filter(function(g){return g.inMonth;});
+  var lines=['МЕСЯЦ: '+MRU[ST.month-1]+' '+ST.year,'ДНЕЙ: '+inM.length,''];
+  lines.push('РАСПИСАНИЕ (день:смена через пробел):');
+  ST.emps.forEach(function(e,i){
+    var shifts=inM.map(function(g){var d=grid.indexOf(g);return g.day+':'+(ST.sched[i][d]||'Вых');});
+    var hrs=inM.reduce(function(s,g){return s+getHrs(ST.sched[i][grid.indexOf(g)]||'');},0);
+    lines.push(e.name+' ('+e.pos+'): '+shifts.join(' ')+' ['+hrs+'ч]');
+  });
+  lines.push('');
+  lines.push('ПРАВИЛА: замы — 5 раб.+2 вых/нед; ins7:45/ins15:45 — только замы; ins23:45 — только менеджеры; в день ровно 5 позиций; после вечерней нельзя утреннюю; не более 3 ночных подряд; RDM — 1 раз/нед у зама, не более 1/день');
+  return lines.join('\n');
+}
+
+var ASSIST_PROMPTS={
+  full:function(ctx){return 'Ты эксперт по расписаниям. Изучи расписание и предложи 5-15 улучшений.\n\nОТВЕЧАЙ ТОЛЬКО ВАЛИДНЫМ JSON-МАССИВОМ без лишнего текста. Каждый элемент:\n{"emp":"Имя Фамилия","day":15,"old":"ins 7:45","new":"C 7:45","reason":"Причина"}\n\n'+ctx;},
+  violations:function(ctx){return 'Найди нарушения правил и предложи исправления.\n\nОТВЕЧАЙ ТОЛЬКО JSON-МАССИВОМ. Формат: {"emp":"Имя","day":15,"old":"смена","new":"смена","reason":"Нарушение: ..."}\nЕсли нарушений нет — верни [].\n\n'+ctx;},
+  balance:function(ctx){return 'Выровняй нагрузку. Предложи изменения чтобы у всех было примерно одинаково часов.\n\nОТВЕЧАЙ ТОЛЬКО JSON-МАССИВОМ. Формат: {"emp":"Имя","day":15,"old":"Вых","new":"C 7:45","reason":"Причина"}\n\n'+ctx;},
+  custom:function(ctx,q){return q+'\n\nОТВЕЧАЙ ТОЛЬКО JSON-МАССИВОМ. Формат: {"emp":"Имя","day":15,"old":"старая","new":"новая","reason":"причина"}\n\n'+ctx;}
+};
+
+async function runAssist(type){
+  var key=_assistKey||_aiKey;
+  if(!key){var k=prompt('Введите Groq API-ключ (gsk_...)');if(!k)return;_assistKey=k.trim();_aiKey=k.trim();}
+  if(!ST.days){document.getElementById('assist-no-sched').style.display='block';document.getElementById('assist-results').style.display='none';return;}
+  document.getElementById('assist-no-sched').style.display='none';
+  var ctx=buildScheduleContext();
+  var q=type==='custom'?document.getElementById('assist-custom').value.trim():'';
+  if(type==='custom'&&!q){alert('Введите задачу');return;}
+  var prmpt=ASSIST_PROMPTS[type]?ASSIST_PROMPTS[type](ctx,q):q;
+  document.getElementById('assist-loading').style.display='block';
+  document.getElementById('assist-results').style.display='none';
+  ['assist-btn','assist-btn2','assist-btn3'].forEach(function(id){var el=document.getElementById(id);if(el)el.disabled=true;});
+  try{
+    var resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_assistKey},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:2048,temperature:0.3,
+        messages:[
+          {role:'system',content:'Ты помощник по расписаниям. Отвечай ТОЛЬКО валидным JSON-массивом.'},
+          {role:'user',content:prmpt}
+        ]})
+    });
+    if(!resp.ok){var err=await resp.json().catch(function(){return{};});throw new Error((err.error&&err.error.message)||'HTTP '+resp.status);}
+    var data=await resp.json();
+    var raw=(data.choices[0].message.content||'[]').replace(/```json/g,'').replace(/```/g,'').trim();
+    var suggestions; try{suggestions=JSON.parse(raw);}catch(e){throw new Error('Groq вернул некорректный формат. Попробуйте ещё раз.');}
+    if(!Array.isArray(suggestions))suggestions=[];
+    var grid=ST.grid||buildGrid(ST.year,ST.month);
+    _suggestions=suggestions.map(function(s){
+      var empIdx=ST.emps.findIndex(function(e){return e.name.toLowerCase().indexOf(s.emp.toLowerCase().split(' ')[0].toLowerCase())>=0;});
+      var dayIdx=grid.findIndex(function(g){return g.inMonth&&g.day===+s.day;});
+      return{empIdx:empIdx,empName:s.emp,dayIdx:dayIdx,dayNum:+s.day,oldShift:s.old,newShift:s.new,reason:s.reason,applied:false,skipped:false};
+    }).filter(function(s){return s.empIdx>=0&&s.dayIdx>=0;});
+    renderSuggestions();
+  }catch(e){alert('Ошибка: '+e.message);}
+  finally{
+    document.getElementById('assist-loading').style.display='none';
+    ['assist-btn','assist-btn2','assist-btn3'].forEach(function(id){var el=document.getElementById(id);if(el)el.disabled=false;});
+  }
+}
+
+function renderSuggestions(){
+  var container=document.getElementById('assist-cards');
+  var resultsEl=document.getElementById('assist-results');
+  var sumEl=document.getElementById('assist-summary');
+  var active=_suggestions.filter(function(s){return !s.applied&&!s.skipped;}).length;
+  sumEl.textContent='Предложений: '+_suggestions.length+' · Ожидают: '+active;
+  var h='';
+  _suggestions.forEach(function(s,si){
+    var ap=s.applied,sk=s.skipped;
+    var bg=ap?'#F0FDF4':sk?'#F8F9FA':'#fff';
+    var brd=ap?'#86EFAC':sk?'#E2E8F0':'var(--border)';
+    var op=(ap||sk)?'0.65':'1';
+    h+='<div style="border:1.5px solid '+brd+';border-radius:10px;padding:12px 16px;background:'+bg+';opacity:'+op+'">';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap">';
+    h+='<span style="font-size:13px;font-weight:700">'+s.empName+'</span>';
+    h+='<span style="font-size:11px;color:var(--muted)">'+s.dayNum+' '+MRU[ST.month-1]+'</span>';
+    h+='<span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px">';
+    h+='<span class="'+getCss(s.oldShift)+'" style="padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700">'+s.oldShift+'</span>';
+    h+='<span style="color:var(--muted)">→</span>';
+    h+='<span class="'+getCss(s.newShift)+'" style="padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700">'+s.newShift+'</span>';
+    h+='</span></div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin-bottom:9px">'+s.reason+'</div>';
+    if(!ap&&!sk){
+      h+='<div style="display:flex;gap:6px">';
+      h+='<button onclick="applySuggestion('+si+')" style="padding:6px 14px;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent-h));color:#fff;border:none;border-radius:7px;cursor:pointer">✅ Применить</button>';
+      h+='<button onclick="skipSuggestion('+si+')" style="padding:6px 14px;font-size:12px;background:var(--bg);color:var(--muted);border:1px solid var(--border);border-radius:7px;cursor:pointer">Пропустить</button>';
+      h+='</div>';
+    } else {
+      h+='<div style="font-size:11px;font-weight:600;color:'+(ap?'#15803D':'var(--muted2)')+'">'+(ap?'✅ Применено':'Пропущено')+'</div>';
+    }
+    h+='</div>';
+  });
+  if(!_suggestions.length) h='<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Предложений нет — расписание уже оптимально 🎉</div>';
+  container.innerHTML=h;
+  resultsEl.style.display='block';
+}
+
+function applySuggestion(si){
+  var s=_suggestions[si]; if(!s||s.applied) return;
+  ST.sched[s.empIdx][s.dayIdx]=s.newShift;
+  if(!ST.locked[s.empIdx]) ST.locked[s.empIdx]=Array(ST.days).fill(false);
+  ST.locked[s.empIdx][s.dayIdx]=true;
+  s.applied=true;
+  saveHistory(); render(); renderSuggestions();
+}
+
+function skipSuggestion(si){_suggestions[si].skipped=true; renderSuggestions();}
+
+function applyAllSuggestions(){
+  _suggestions.forEach(function(s,si){if(!s.applied&&!s.skipped)applySuggestion(si);});
+}
+
+function clearSuggestions(){_suggestions=[];document.getElementById('assist-results').style.display='none';}
+
+// ── Save / Load schedule to file ──────────────────────────
+function saveToFile(){
+  if(!ST.days){alert('Сначала сгенерируйте расписание');return;}
+  var data={
+    version:2,
+    savedAt:new Date().toISOString(),
+    current:{
+      sched:ST.sched,mgmtSched:ST.mgmtSched,locked:ST.locked,
+      emps:ST.emps,days:ST.days,year:ST.year,month:ST.month
+    },
+    schedHistory:schedHistory,
+    yearHistory:yearHistory
+  };
+  var json=JSON.stringify(data);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  var m=ST.month,y=ST.year;
+  a.download='Расписание_ПБО_'+y+'_'+String(m).padStart(2,'0')+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function loadFromFile(){
+  var inp=document.createElement('input');
+  inp.type='file'; inp.accept='.json';
+  inp.onchange=function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        if(!data.version||!data.current) throw new Error('Неверный формат файла');
+        // Restore
+        var c=data.current;
+        var grid=c.grid||buildGrid(c.year,c.month);
+        ST={sched:c.sched,mgmtSched:c.mgmtSched,locked:c.locked,
+            emps:c.emps,days:c.days,year:c.year,month:c.month,grid:grid};
+        ST.sched._grid=grid;
+        if(data.schedHistory) Object.assign(schedHistory,data.schedHistory);
+        if(data.yearHistory)  Object.assign(yearHistory, data.yearHistory);
+        render(); go('sched'); renderMonthTabs();
+        alert('✅ Расписание загружено: '+MRU[c.month-1]+' '+c.year);
+      }catch(err){
+        alert('Ошибка загрузки: '+err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+// INIT
+// ═══════════════════════════════════════
+try{buildMgmt();}catch(e){console.error('buildMgmt:',e);}
+try{buildStaff();setTimeout(function(){renderWishes();renderVacations();renderAllDayCons();},0);}catch(e){console.error('buildStaff:',e);document.getElementById('staff-list').innerHTML='<p style="color:red;padding:10px">Ошибка инициализации: '+e.message+'</p>';}
+try{updatePeriod();buildLegend();}catch(e){console.error('init:',e);}
+</script>
+</body>
+</html>
